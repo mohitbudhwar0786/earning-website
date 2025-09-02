@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}Wallet - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-white mb-4" data-aos="fade-right">
+            <i class="fas fa-wallet me-2"></i>My Wallet
+        </h2>
+    </div>
+</div>
+
+<!-- Wallet Overview -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="wallet-card earning-animation" data-aos="fade-up" data-aos-delay="100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6><i class="fas fa-coins me-2"></i>Available Balance</h6>
+                    <h2>₹{{ "%.2f"|format(wallet.balance) }}</h2>
+                    <small>Ready for withdrawal</small>
+                </div>
+                <i class="fas fa-wallet fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="200">
+            <h6><i class="fas fa-chart-line me-2"></i>Today's Earnings</h6>
+            <h3>₹{{ "%.2f"|format(today_earnings) }}</h3>
+            <small class="opacity-75">{% if today_earnings > 0 %}Added to wallet automatically{% else %}No earnings today yet{% endif %}</small>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="300">
+            <h6><i class="fas fa-money-bill-transfer me-2"></i>Total Withdrawn</h6>
+            <h3>₹{{ "%.2f"|format(wallet.total_withdrawn) }}</h3>
+            <small class="opacity-75">Lifetime withdrawals</small>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card glow" data-aos="fade-right">
+            <div class="card-body text-center">
+                <i class="fas fa-hand-holding-usd fa-4x text-success mb-3"></i>
+                <h5>Withdraw Funds</h5>
+                <p class="text-muted">Request withdrawal of your earnings</p>
+                {% if wallet.balance >= 100 %}
+                <a href="{{ url_for('withdraw') }}" class="btn btn-success">
+                    <i class="fas fa-download me-2"></i>Withdraw Now
+                </a>
+                {% else %}
+                <p class="text-warning small">Minimum withdrawal: ₹100</p>
+                <button class="btn btn-secondary" disabled>
+                    <i class="fas fa-download me-2"></i>Insufficient Balance
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card glow" data-aos="fade-left">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-4x text-primary mb-3"></i>
+                <h5>Processing Time</h5>
+                <p class="text-muted">All withdrawals are processed within</p>
+                <div class="withdrawal-timer">
+                    <i class="fas fa-stopwatch me-2"></i>24 Hours Guaranteed
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Earnings Breakdown -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card" data-aos="fade-up">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-pie me-2"></i>Earnings Breakdown
+                </h5>
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="border rounded-3 p-3">
+                            <i class="fas fa-piggy-bank fa-2x text-primary mb-2"></i>
+                            <h4 class="text-success">₹{{ "%.2f"|format(wallet.total_earned) }}</h4>
+                            <p class="text-muted small">Total Earned</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="border rounded-3 p-3">
+                            <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                            <h4 class="text-info">₹{{ "%.2f"|format(user.total_earnings - user.referral_earnings) }}</h4>
+                            <p class="text-muted small">Investment Earnings</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="border rounded-3 p-3">
+                            <i class="fas fa-users fa-2x text-warning mb-2"></i>
+                            <h4 class="text-warning">₹{{ "%.2f"|format(user.referral_earnings) }}</h4>
+                            <p class="text-muted small">Referral Earnings</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Withdrawal History -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card" data-aos="fade-up">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-history me-2"></i>Withdrawal History
+                </h5>
+                
+                {% if withdrawals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Processing Time</th>
+                                <th>Payment Info</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for withdrawal in withdrawals %}
+                            <tr>
+                                <td class="fw-bold">₹{{ "%.2f"|format(withdrawal.amount) }}</td>
+                                <td>
+                                    {% if withdrawal.status == 'pending' %}
+                                    <span class="badge bg-warning">
+                                        <span class="status-indicator status-pending"></span>Pending
+                                    </span>
+                                    {% elif withdrawal.status == 'awaiting_confirmation' %}
+                                    <span class="badge bg-primary">
+                                        <span class="status-indicator status-processing"></span>Awaiting Confirmation
+                                    </span>
+                                    {% elif withdrawal.status == 'processing' %}
+                                    <span class="badge bg-info">
+                                        <span class="status-indicator status-processing"></span>Processing
+                                    </span>
+                                    {% elif withdrawal.status == 'completed' %}
+                                    <span class="badge bg-success">
+                                        <span class="status-indicator status-completed"></span>Completed
+                                    </span>
+                                    {% elif withdrawal.status == 'cancelled' %}
+                                    <span class="badge bg-danger">
+                                        <span class="status-indicator status-completed"></span>Cancelled
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">
+                                        <span class="status-indicator status-completed"></span>{{ withdrawal.status.title() }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ withdrawal.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if withdrawal.status == 'pending' %}
+                                    <span class="text-warning">{{ withdrawal.processing_time }}h remaining</span>
+                                    {% elif withdrawal.processed_at %}
+                                    <span class="text-success">{{ withdrawal.processed_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    {% else %}
+                                    <span class="text-info">Processing...</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if withdrawal.payment_method %}
+                                        <small>
+                                            <strong>Method:</strong> {{ withdrawal.payment_method|upper }}<br>
+                                            {% if withdrawal.payment_reference %}
+                                                <strong>Ref:</strong> {{ withdrawal.payment_reference }}<br>
+                                            {% endif %}
+                                            {% if withdrawal.payment_time_hours is not none %}
+                                                <strong>Time:</strong> {{ withdrawal.payment_time_hours }}:{{ "%02d"|format(withdrawal.payment_time_minutes or 0) }}
+                                            {% endif %}
+                                        </small>
+                                    {% else %}
+                                        <small class="text-muted">Processing...</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if withdrawal.status == 'pending' %}
+                                        <a href="{{ url_for('confirm_payment', withdrawal_id=withdrawal.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-credit-card me-1"></i>Confirm Payment
+                                        </a>
+                                    {% elif withdrawal.status == 'awaiting_confirmation' %}
+                                        <small class="text-primary">
+                                            <i class="fas fa-hourglass-half me-1"></i>Waiting for Admin Verification
+                                        </small>
+                                    {% elif withdrawal.status == 'completed' %}
+                                        <small class="text-success">
+                                            <i class="fas fa-check-circle me-1"></i>Completed
+                                        </small>
+                                    {% elif withdrawal.status == 'cancelled' %}
+                                        <small class="text-danger">
+                                            <i class="fas fa-times-circle me-1"></i>Cancelled
+                                        </small>
+                                    {% else %}
+                                        <small class="text-info">{{ withdrawal.status.title() }}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-hand-holding-usd fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted">No withdrawals yet</h4>
+                    <p class="text-muted">Your withdrawal history will appear here</p>
+                    {% if wallet.balance >= 100 %}
+                    <a href="{{ url_for('withdraw') }}" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Make First Withdrawal
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card" data-aos="fade-right">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
+                <h5>Earnings Summary</h5>
+                <div class="row">
+                    <div class="col-6">
+                        <h6 class="text-success">₹{{ "%.2f"|format(wallet.total_earned) }}</h6>
+                        <small class="text-muted">Total Earned</small>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-primary">₹{{ "%.2f"|format(wallet.balance) }}</h6>
+                        <small class="text-muted">Available</small>
+                    </div>
+                </div>
+                <a href="{{ url_for('earnings') }}" class="btn btn-outline-primary btn-sm mt-3">
+                    <i class="fas fa-eye me-1"></i>View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card" data-aos="fade-left">
+            <div class="card-body text-center">
+                <i class="fas fa-plus-circle fa-3x text-success mb-3"></i>
+                <h5>Increase Earnings</h5>
+                <p class="text-muted">Invest more or refer friends to boost your daily income</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('invest') }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-chart-line me-1"></i>Invest
+                    </a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-share me-1"></i>Refer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Automatic Earning Info -->
+<div class="alert alert-info" data-aos="fade-up">
+    <h6><i class="fas fa-info-circle me-2"></i>Automatic Daily Earnings</h6>
+    <p class="mb-0">Your daily earnings from investments and referrals are automatically added to your wallet balance every day at midnight. No manual action required!</p>
+</div>
+{% endblock %}

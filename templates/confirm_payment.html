@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Payment - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header Section -->
+        <div class="text-center mb-4" data-aos="fade-down">
+            <h1 class="text-white mb-3">
+                <i class="fas fa-credit-card me-2"></i>Confirm Your Payment
+            </h1>
+            <p class="text-white-50">Complete your withdrawal by confirming your payment</p>
+        </div>
+
+        <!-- Withdrawal Details Card -->
+        <div class="card mb-4" data-aos="fade-up">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Withdrawal Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Withdrawal ID</h6>
+                        <p class="mb-3">#{{ withdrawal.id }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Amount</h6>
+                        <p class="mb-3"><strong class="text-success">₹{{ "%.2f"|format(withdrawal.amount) }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Requested On</h6>
+                        <p class="mb-3">{{ withdrawal.requested_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Status</h6>
+                        <span class="badge bg-warning">{{ withdrawal.status.title() }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="card mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-wallet me-2"></i>Payment Methods
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- UPI Payment -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 payment-option" onclick="selectPaymentMethod('upi')" id="upi-card">
+                            <div class="card-header bg-primary text-white text-center">
+                                <h6 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>UPI Payment</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <i class="fab fa-google-pay fa-4x text-primary mb-3"></i>
+                                <h6 class="text-primary mb-2">{{ config.admin_name }}</h6>
+                                <div class="d-flex align-items-center justify-content-center mb-3">
+                                    <code class="me-2" id="upiId">{{ config.upi_id }}</code>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="copyUPI(event)" title="Copy UPI ID">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <p class="text-muted small mb-3">Copy UPI ID and pay using any UPI app</p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_method" value="upi" id="upi-radio">
+                                    <label class="form-check-label text-primary fw-bold" for="upi-radio">
+                                        Select UPI
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Payment -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 payment-option" onclick="selectPaymentMethod('qr')" id="qr-card">
+                            <div class="card-header bg-success text-white text-center">
+                                <h6 class="mb-0"><i class="fas fa-qrcode me-2"></i>QR Code Payment</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                {% if config.qr_code_path %}
+                                    <img src="{{ url_for('static', filename=config.qr_code_path) }}" 
+                                         class="img-fluid border rounded mb-3" 
+                                         style="max-width: 150px; max-height: 150px;"
+                                         alt="Payment QR Code">
+                                {% else %}
+                                    <div class="qr-placeholder bg-light border rounded p-4 mb-3" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                                        <div class="text-center">
+                                            <i class="fas fa-qrcode fa-3x text-muted mb-2"></i>
+                                            <p class="text-muted small mb-0">QR Code not available</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <h6 class="text-success mb-2">{{ config.admin_name }}</h6>
+                                <p class="text-muted small mb-3">Scan QR code to pay directly</p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_method" value="qr" id="qr-radio" {% if not config.qr_code_path %}disabled{% endif %}>
+                                    <label class="form-check-label text-success fw-bold" for="qr-radio">
+                                        {% if config.qr_code_path %}Select QR Code{% else %}QR Not Available{% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Confirmation Form -->
+        <div class="card" data-aos="fade-up" data-aos-delay="400">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>Payment Confirmation
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="confirmationForm">
+                    <input type="hidden" name="payment_method" id="selectedMethod">
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-clock me-2"></i>Important Instructions:</h6>
+                        <ul class="mb-0">
+                            <li>Make the payment of <strong>₹{{ "%.2f"|format(withdrawal.amount) }}</strong> using your selected method</li>
+                            <li>Enter the exact transaction reference number you received</li>
+                            <li>Enter the exact time when you made the payment</li>
+                            <li>You have <strong>24 hours</strong> to confirm your payment</li>
+                            <li>Admin will verify and process your payment within 24 hours of confirmation</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-receipt me-2"></i>Payment Reference Number *
+                        </label>
+                        <input type="text" class="form-control" name="payment_reference" 
+                               placeholder="Enter transaction reference/UTR number" required>
+                        <small class="form-text text-muted">Enter the reference number from your payment app</small>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-clock me-2"></i>Payment Time - Hours (0-23) *
+                            </label>
+                            <input type="number" class="form-control" name="payment_hours" 
+                                   min="0" max="23" placeholder="HH" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-clock me-2"></i>Payment Time - Minutes (0-59) *
+                            </label>
+                            <input type="number" class="form-control" name="payment_minutes" 
+                                   min="0" max="59" placeholder="MM" required>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Verification Policy:</h6>
+                        <p class="mb-0">
+                            After confirming your payment, our admin will verify the transaction within 24 hours. 
+                            If the payment details are incorrect or payment is not found, your withdrawal will be cancelled 
+                            and the amount will be refunded to your wallet.
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="button" class="btn btn-secondary me-2" onclick="window.history.back()">
+                            <i class="fas fa-arrow-left me-2"></i>Go Back
+                        </button>
+                        <button type="submit" class="btn btn-success btn-lg" id="confirmBtn" disabled>
+                            <i class="fas fa-check-circle me-2"></i>Confirm Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 24-Hour Timer -->
+        <div class="card bg-dark text-white mt-4" data-aos="fade-up" data-aos-delay="600">
+            <div class="card-body text-center">
+                <h6><i class="fas fa-stopwatch me-2"></i>Confirmation Deadline</h6>
+                <div id="countdown" class="h4 text-warning"></div>
+                <p class="mb-0 small">Time remaining to confirm your payment</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedPaymentMethod = '';
+
+// Set countdown timer for 24 hours from withdrawal request
+const requestTime = new Date("{{ withdrawal.requested_at.strftime('%Y-%m-%dT%H:%M:%S') }}");
+const deadline = new Date(requestTime.getTime() + 24 * 60 * 60 * 1000);
+
+function updateCountdown() {
+    const now = new Date();
+    const timeLeft = deadline - now;
+    
+    if (timeLeft <= 0) {
+        document.getElementById('countdown').innerHTML = '<span class="text-danger">EXPIRED</span>';
+        document.getElementById('confirmBtn').disabled = true;
+        document.getElementById('confirmationForm').innerHTML = '<div class="alert alert-danger text-center"><h5>Confirmation Time Expired</h5><p>You can no longer confirm this payment. Please contact support.</p></div>';
+        return;
+    }
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+    
+    document.getElementById('countdown').textContent = `${hours}h ${minutes}m ${seconds}s`;
+}
+
+// Update countdown every second
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+function selectPaymentMethod(method) {
+    selectedPaymentMethod = method;
+    document.getElementById('selectedMethod').value = method;
+    
+    // Reset all cards
+    document.querySelectorAll('.payment-option').forEach(card => {
+        card.classList.remove('border-primary', 'border-success', 'selected');
+    });
+    
+    // Highlight selected card and check radio
+    if (method === 'upi') {
+        document.getElementById('upi-card').classList.add('border-primary', 'selected');
+        document.getElementById('upi-card').style.borderWidth = '3px';
+        document.getElementById('upi-radio').checked = true;
+    } else if (method === 'qr') {
+        document.getElementById('qr-card').classList.add('border-success', 'selected');
+        document.getElementById('qr-card').style.borderWidth = '3px';
+        document.getElementById('qr-radio').checked = true;
+    }
+    
+    // Enable confirm button
+    validateForm();
+}
+
+function copyUPI(event) {
+    event.stopPropagation(); // Prevent card selection
+    const upiId = document.getElementById('upiId').textContent;
+    
+    navigator.clipboard.writeText(upiId).then(function() {
+        showToast('UPI ID copied to clipboard!', 'success');
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        showToast('Failed to copy. Please copy manually.', 'error');
+    });
+}
+
+function validateForm() {
+    const method = document.getElementById('selectedMethod').value;
+    const reference = document.querySelector('input[name="payment_reference"]').value;
+    const hours = document.querySelector('input[name="payment_hours"]').value;
+    const minutes = document.querySelector('input[name="payment_minutes"]').value;
+    
+    const isValid = method && reference.trim() && hours !== '' && minutes !== '';
+    document.getElementById('confirmBtn').disabled = !isValid;
+}
+
+// Add event listeners to form inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('#confirmationForm input');
+    inputs.forEach(input => {
+        input.addEventListener('input', validateForm);
+    });
+    
+    // Set current time as default
+    const now = new Date();
+    document.querySelector('input[name="payment_hours"]').value = now.getHours();
+    document.querySelector('input[name="payment_minutes"]').value = now.getMinutes();
+    
+    validateForm();
+});
+
+function showToast(message, type) {
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'times'} me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+    const toast = document.querySelector('.toast:last-child');
+    new bootstrap.Toast(toast).show();
+    
+    // Remove toast element after it's hidden
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+</script>
+
+<style>
+.payment-option {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.payment-option.selected {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+#countdown {
+    font-family: 'Courier New', monospace;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+</style>
+{% endblock %}

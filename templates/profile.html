@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-user me-2"></i>Profile Information
+                </h5>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Username:</label>
+                    <p class="text-muted">{{ user.username }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email:</label>
+                    <p class="text-muted">{{ user.email }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Member Since:</label>
+                    <p class="text-muted">{{ user.created_at.strftime('%B %d, %Y') }}</p>
+                </div>
+                {% if user.referred_by %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Referred By:</label>
+                    <p class="text-muted">{{ user.referred_by }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-share-alt me-2"></i>Referral Information
+                </h5>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Your Referral Code:</label>
+                    <div class="referral-code">
+                        {{ user.referral_code }}
+                    </div>
+                    <div class="btn-group d-flex gap-2 flex-wrap" role="group">
+                        <button class="btn btn-outline-primary btn-sm" onclick="copyReferralCode()">
+                            <i class="fas fa-copy me-1"></i>Copy Code
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="shareOnWhatsApp()">
+                            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="shareOnTelegram()">
+                            <i class="fab fa-telegram me-1"></i>Telegram
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="copyShareMessage()">
+                            <i class="fas fa-clipboard me-1"></i>Copy Message
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-info py-2 px-3 mb-3">
+                    <small class="mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Daily Referral Income:</strong><br>
+                        ₹500 plan → ₹10+ daily | ₹1000 plan → ₹25+ daily | ₹2000 plan → ₹60+ daily
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Referral Link:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="referralLink" value="{{ request.host_url }}register?ref={{ user.referral_code }}" readonly>
+                        <button class="btn btn-outline-primary" onclick="copyReferralLink()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Earnings Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-chart-bar me-2"></i>Earnings Summary
+                </h5>
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-success">₹{{ "%.2f"|format(user.total_investment) }}</h4>
+                        <p class="text-muted">Total Invested</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-success">₹{{ "%.2f"|format(user.total_earnings) }}</h4>
+                        <p class="text-muted">Total Earnings</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-success">₹{{ "%.2f"|format(user.referral_earnings) }}</h4>
+                        <p class="text-muted">Referral Earnings</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-primary">{{ referrals|length }}</h4>
+                        <p class="text-muted">Active Referrals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Referrals List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-users me-2"></i>Your Referrals
+                </h5>
+                {% if referrals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Joined Date</th>
+                                <th>Total Investment</th>
+                                <th>Your Bonus</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for referral, referred_user in referrals %}
+                            <tr>
+                                <td>{{ referred_user.username }}</td>
+                                <td>{{ referred_user.email }}</td>
+                                <td>{{ referral.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>₹{{ "%.2f"|format(referred_user.total_investment) }}</td>
+                                <td class="text-success">₹{{ "%.2f"|format(referral.bonus_earned) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No referrals yet. Share your referral code to start earning bonuses!</p>
+                    <div class="referral-code">
+                        {{ user.referral_code }}
+                    </div>
+                    <button class="btn btn-primary" onclick="copyReferralCode()">
+                        <i class="fas fa-share me-2"></i>Copy & Share Code
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const userReferralCode = "{{ user.referral_code }}";
+const baseUrl = "{{ request.host_url }}";
+const referralLink = `${baseUrl}register?ref=${userReferralCode}`;
+
+function copyReferralCode() {
+    navigator.clipboard.writeText(userReferralCode).then(function() {
+        showCopySuccess('Referral code copied to clipboard!');
+    });
+}
+
+function copyReferralLink() {
+    navigator.clipboard.writeText(referralLink).then(function() {
+        showCopySuccess('Referral link copied to clipboard!');
+    });
+}
+
+function copyShareMessage() {
+    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!
+
+💰 Investment Plans:
+• ₹500 → ₹30 daily (6% return)
+• ₹1000 → ₹70 daily (7% return) 
+• ₹2000 → ₹150 daily (7.5% return)
+
+🎁 Use my referral code: ${userReferralCode}
+📱 Register here: ${referralLink}
+
+✨ Start earning today with EarnDaily!
+#EarnDaily #Investment #PassiveIncome`;
+    
+    navigator.clipboard.writeText(message).then(function() {
+        showCopySuccess('Complete share message copied to clipboard!');
+    });
+}
+
+function shareOnWhatsApp() {
+    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!
+
+💰 Investment Plans:
+• ₹500 → ₹30 daily
+• ₹1000 → ₹70 daily
+• ₹2000 → ₹150 daily
+
+🎁 Use my referral code: ${userReferralCode}
+📱 Register now: ${referralLink}
+
+#EarnDaily #Investment #PassiveIncome`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function shareOnTelegram() {
+    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!
+
+💰 Investment Plans:
+• ₹500 → ₹30 daily
+• ₹1000 → ₹70 daily  
+• ₹2000 → ₹150 daily
+
+🎁 Use my referral code: ${userReferralCode}
+📱 Register now: ${referralLink}`;
+    
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
+    window.open(telegramUrl, '_blank');
+}
+
+function showCopySuccess(message) {
+    // Create a temporary success notification
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-success position-fixed';
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `<i class="fas fa-check-circle me-2"></i>${message}`;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+
+<style>
+.referral-code {
+    background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+    border: 2px dashed #007bff;
+    padding: 20px;
+    border-radius: 15px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 15px;
+    letter-spacing: 3px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.referral-code::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+}
+
+.btn-group .btn {
+    border-radius: 8px !important;
+    margin: 2px;
+}
+
+.btn-group {
+    gap: 8px !important;
+}
+</style>
+{% endblock %}

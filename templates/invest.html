@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Invest - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header Section -->
+        <div class="text-center mb-5" data-aos="fade-down">
+            <h1 class="text-white mb-3">
+                <i class="fas fa-chart-line me-2"></i>Investment Plans
+            </h1>
+            <p class="text-white-50">Choose your investment amount and start earning guaranteed daily returns</p>
+            
+            <!-- Investment Status -->
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-6">
+                    <div class="alert alert-info mb-0">
+                        <div class="text-center">
+                            <h6 class="mb-1"><i class="fas fa-wallet me-1"></i>Current Total Investment</h6>
+                            <h5 class="mb-0 text-primary">₹{{ "%.0f"|format(current_investment or 0) }}</h5>
+                            <small class="text-muted">No investment limit - invest any amount above ₹500!</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-center text-primary mb-5" data-aos="fade-up">
+                    <i class="fas fa-rocket me-2"></i>Start Your Earning Journey
+                </h3>
+                
+                <!-- Referral Incentive Section -->
+                <div class="alert alert-success text-center mb-5" data-aos="fade-up">
+                    <h4 class="text-success mb-3">
+                        <i class="fas fa-users me-2"></i>Earn Unlimited Referral Bonuses!
+                    </h4>
+                    <p class="mb-3">Invite friends and earn daily bonuses from their investments - no limits!</p>
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="bg-light p-3 rounded">
+                                <h5 class="text-primary">₹500 Investment</h5>
+                                <h4 class="text-success">₹10 Daily Bonus</h4>
+                                <small class="text-muted">Per referral</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="bg-light p-3 rounded">
+                                <h5 class="text-primary">₹1,000 Investment</h5>
+                                <h4 class="text-success">₹25 Daily Bonus</h4>
+                                <small class="text-muted">Per referral</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="bg-light p-3 rounded">
+                                <h5 class="text-primary">₹2,000+ Investment</h5>
+                                <h4 class="text-success">3% Daily Bonus</h4>
+                                <small class="text-muted">Per referral (proportional)</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('profile') }}" class="btn btn-success btn-lg me-2">
+                            <i class="fas fa-share me-2"></i>Get Your Referral Code
+                        </a>
+                        <button class="btn btn-outline-success btn-lg" onclick="shareReferralCode()">
+                            <i class="fas fa-whatsapp me-2"></i>Share on WhatsApp
+                        </button>
+                    </div>
+                </div>
+                
+                <form method="POST" id="investmentForm">
+                    <div class="row justify-content-center">
+                        <div class="col-md-3 mb-4">
+                            <div class="investment-card p-4" onclick="selectPlan(500)" id="plan-500" data-aos="fade-up" data-aos-delay="100">
+                                <div class="text-center">
+                                    <div class="position-relative mb-3">
+                                        <i class="fas fa-star text-warning position-absolute" style="top: -10px; right: 10px;"></i>
+                                    </div>
+                                    <h4 class="text-primary mb-3">Starter Plan</h4>
+                                    <div class="mb-3">
+                                        <h2 class="text-primary">₹500</h2>
+                                        <small class="text-muted">One-time Investment</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h3 class="text-success">₹30</h3>
+                                        <small class="text-muted">Daily Return (6%)</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <p class="text-muted small">
+                                            <i class="fas fa-check text-success me-1"></i>6% Daily Return<br>
+                                            <i class="fas fa-check text-success me-1"></i>Referral Bonus Eligible<br>
+                                            <i class="fas fa-check text-success me-1"></i>Instant Activation
+                                        </p>
+                                    </div>
+                                    <input type="radio" name="amount" value="500" id="amount-500" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-4">
+                            <div class="investment-card p-4" onclick="selectPlan(1000)" id="plan-1000" data-aos="fade-up" data-aos-delay="200">
+                                <div class="text-center">
+                                    <div class="position-relative mb-3">
+                                        <i class="fas fa-crown text-warning position-absolute" style="top: -10px; right: 10px;"></i>
+                                    </div>
+                                    <h4 class="text-primary mb-3">Premium Plan</h4>
+                                    <div class="mb-3">
+                                        <h2 class="text-primary">₹1,000</h2>
+                                        <small class="text-muted">One-time Investment</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h3 class="text-success">₹70</h3>
+                                        <small class="text-muted">Daily Return (7%)</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <p class="text-muted small">
+                                            <i class="fas fa-check text-success me-1"></i>7% Daily Return<br>
+                                            <i class="fas fa-check text-success me-1"></i>Higher Referral Bonus<br>
+                                            <i class="fas fa-check text-success me-1"></i>Priority Support
+                                        </p>
+                                    </div>
+                                    <input type="radio" name="amount" value="1000" id="amount-1000" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-4">
+                            <div class="investment-card p-4" onclick="selectPlan(2000)" id="plan-2000" data-aos="fade-up" data-aos-delay="300">
+                                <div class="text-center">
+                                    <div class="position-relative mb-3">
+                                        <i class="fas fa-gem text-warning position-absolute" style="top: -10px; right: 10px;"></i>
+                                    </div>
+                                    <h4 class="text-primary mb-3">VIP Plan</h4>
+                                    <div class="mb-3">
+                                        <h2 class="text-primary">₹2,000+</h2>
+                                        <small class="text-muted">Unlimited Investment</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h3 class="text-success">7.5%</h3>
+                                        <small class="text-muted">Daily Return Rate</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <p class="text-muted small">
+                                            <i class="fas fa-check text-success me-1"></i>7.5% Daily Return<br>
+                                            <i class="fas fa-check text-success me-1"></i>Unlimited Investment<br>
+                                            <i class="fas fa-check text-success me-1"></i>VIP Support
+                                        </p>
+                                    </div>
+                                    <input type="radio" name="amount" value="2000" id="amount-2000" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-4">
+                            <div class="investment-card p-4" onclick="selectCustomPlan()" id="plan-custom" data-aos="fade-up" data-aos-delay="400">
+                                <div class="text-center">
+                                    <div class="position-relative mb-3">
+                                        <i class="fas fa-infinity text-warning position-absolute" style="top: -10px; right: 10px;"></i>
+                                    </div>
+                                    <h4 class="text-primary mb-3">Custom Amount</h4>
+                                    <div class="mb-3">
+                                        <h2 class="text-primary">₹</h2>
+                                        <input type="number" class="form-control text-center" id="customAmount" placeholder="Enter amount" min="500" step="100">
+                                    </div>
+                                    <div class="mb-3">
+                                        <h5 class="text-success" id="customReturn">Calculated Daily Return</h5>
+                                        <small class="text-muted">Based on tier rates</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <p class="text-muted small">
+                                            <i class="fas fa-check text-success me-1"></i>Flexible Amount<br>
+                                            <i class="fas fa-check text-success me-1"></i>Tier-based Returns<br>
+                                            <i class="fas fa-check text-success me-1"></i>No Limit
+                                        </p>
+                                    </div>
+                                    <input type="radio" name="amount" value="" id="amount-custom" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4" data-aos="zoom-in" data-aos-delay="400">
+                        <button type="submit" class="btn btn-primary btn-lg" id="investBtn" disabled>
+                            <i class="fas fa-credit-card me-2"></i>Confirm Investment
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="row mt-5" data-aos="fade-up" data-aos-delay="500">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Important Information:</h6>
+                            <ul class="mb-0">
+                                <li>Daily earnings are calculated and credited automatically every day at midnight</li>
+                                <li>Referral bonuses are 10% of your referrals' daily earnings</li>
+                                <li>You can make multiple investments to increase your daily earnings</li>
+                                <li>All investments are active immediately after confirmation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedAmount = null;
+const userReferralCode = "{{ user.referral_code }}";
+const baseUrl = "{{ request.host_url }}";
+
+function calculateDailyReturn(amount) {
+    if (amount >= 2000) {
+        return amount * 0.075; // 7.5% for amounts >= 2000
+    } else if (amount >= 1000) {
+        return 70; // Fixed ₹70 for 1000-1999
+    } else if (amount >= 500) {
+        return 30; // Fixed ₹30 for 500-999
+    }
+    return 0;
+}
+
+function selectPlan(amount) {
+    // Remove previous selection
+    document.querySelectorAll('.investment-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Clear custom amount input
+    document.getElementById('customAmount').value = '';
+    document.getElementById('customReturn').textContent = 'Calculated Daily Return';
+    
+    // Add selection to clicked card
+    document.getElementById(`plan-${amount}`).classList.add('selected');
+    document.getElementById(`amount-${amount}`).checked = true;
+    
+    selectedAmount = amount;
+    document.getElementById('investBtn').disabled = false;
+}
+
+function selectCustomPlan() {
+    // Remove previous selection
+    document.querySelectorAll('.investment-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Add selection to custom card
+    document.getElementById('plan-custom').classList.add('selected');
+    document.getElementById('amount-custom').checked = true;
+    
+    // Focus on custom amount input
+    document.getElementById('customAmount').focus();
+}
+
+function updateCustomReturn() {
+    const amount = parseFloat(document.getElementById('customAmount').value);
+    if (amount >= 500) {
+        const dailyReturn = calculateDailyReturn(amount);
+        document.getElementById('customReturn').textContent = `₹${dailyReturn.toFixed(0)} Daily`;
+        document.getElementById('amount-custom').value = amount;
+        selectedAmount = amount;
+        document.getElementById('investBtn').disabled = false;
+    } else {
+        document.getElementById('customReturn').textContent = 'Minimum ₹500';
+        document.getElementById('investBtn').disabled = true;
+    }
+}
+
+function shareReferralCode() {
+    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!\n\n💰 Investment Plans:\n• ₹500 → ₹30 daily (6%)\n• ₹1000 → ₹70 daily (7%)\n• ₹2000+ → 7.5% daily (unlimited)\n\n🎁 Use my referral code: ${userReferralCode}\n\n📱 Register now: ${baseUrl}register?ref=${userReferralCode}\n\n#EarnDaily #Investment #PassiveIncome`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function copyReferralCode() {
+    navigator.clipboard.writeText(userReferralCode).then(function() {
+        alert('Referral code copied to clipboard!');
+    });
+}
+
+function copyReferralLink() {
+    const link = `${baseUrl}register?ref=${userReferralCode}`;
+    navigator.clipboard.writeText(link).then(function() {
+        alert('Referral link copied to clipboard!');
+    });
+}
+
+function shareOnTelegram() {
+    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!\n\n💰 Investment Plans:\n• ₹500 → ₹30 daily (6%)\n• ₹1000 → ₹70 daily (7%)\n• ₹2000+ → 7.5% daily (unlimited)\n\n🎁 Use my referral code: ${userReferralCode}\n\n📱 Register now: ${baseUrl}register?ref=${userReferralCode}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(baseUrl + 'register?ref=' + userReferralCode)}&text=${encodeURIComponent(message)}`;
+    window.open(telegramUrl, '_blank');
+}
+
+// Add event listener for custom amount input
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('customAmount').addEventListener('input', updateCustomReturn);
+});
+</script>
+
+<style>
+.investment-card {
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.investment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-color: #007bff;
+}
+
+.investment-card.selected {
+    border-color: #007bff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,123,255,0.2);
+}
+
+.investment-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+}
+
+.investment-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #e9ecef;
+}
+
+.plan-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.referral-code {
+    background: #f8f9fa;
+    border: 2px dashed #007bff;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+</style>
+{% endblock %}

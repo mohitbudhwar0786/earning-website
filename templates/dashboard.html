@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="text-white mb-4" data-aos="fade-right">
+            <i class="fas fa-tachometer-alt me-2"></i>Welcome back, {{ user.username }}!
+        </h1>
+        <p class="text-white-50 mb-4" data-aos="fade-right" data-aos-delay="100">
+            Your personalized investment dashboard. Track earnings, manage investments, and grow your wealth.
+        </p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card earning-animation" data-aos="fade-up" data-aos-delay="100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6><i class="fas fa-piggy-bank me-2"></i>Total Investment</h6>
+                    <h3>₹{{ "%.2f"|format(user.total_investment) }}</h3>
+                    <small class="opacity-75">Across all plans</small>
+                </div>
+                <i class="fas fa-chart-pie fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card earning-animation" data-aos="fade-up" data-aos-delay="200">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6><i class="fas fa-coins me-2"></i>Daily Earning</h6>
+                    <h3>₹{{ "%.2f"|format(total_daily_earning + referral_bonus) }}</h3>
+                    <small class="opacity-75">Including referral bonus</small>
+                </div>
+                <i class="fas fa-calendar-day fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="300">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6><i class="fas fa-chart-line me-2"></i>Total Earnings</h6>
+                    <h3>₹{{ "%.2f"|format(user.total_earnings) }}</h3>
+                    <small class="opacity-75">Lifetime earnings</small>
+                </div>
+                <i class="fas fa-trending-up fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="400">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6><i class="fas fa-users me-2"></i>Active Referrals</h6>
+                    <h3>{{ referral_count }}</h3>
+                    <small class="opacity-75">Earning you bonuses</small>
+                </div>
+                <i class="fas fa-network-wired fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wallet & Referral Section -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="wallet-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6><i class="fas fa-wallet me-2"></i>Wallet Balance</h6>
+                    <h3>₹{{ "%.2f"|format(user.total_earnings) }}</h3>
+                    <a href="{{ url_for('wallet') }}" class="btn btn-success btn-sm mt-2">
+                        <i class="fas fa-eye me-1"></i>View Wallet
+                    </a>
+                </div>
+                <i class="fas fa-wallet fa-3x opacity-30"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card glow" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-body text-center">
+                <h6 class="text-primary">
+                    <i class="fas fa-share-alt me-2"></i>Your Referral Code
+                </h6>
+                <div class="referral-code" style="font-size: 1.5rem; margin: 10px 0;">
+                    {{ user.referral_code }}
+                </div>
+                <button class="btn btn-outline-primary btn-sm" onclick="copyReferralCode()">
+                    <i class="fas fa-copy me-1"></i>Copy & Share
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card" data-aos="fade-up" data-aos-delay="300">
+            <div class="card-body text-center">
+                <h6 class="text-primary">
+                    <i class="fas fa-gift me-2"></i>Referral Bonus
+                </h6>
+                <h3 class="text-success">₹{{ "%.2f"|format(referral_bonus) }}</h3>
+                <p class="text-muted small">Daily from {{ referral_count }} referrals</p>
+                <div class="alert alert-info py-2 px-3 mb-2">
+                    <small class="mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Referral Income:</strong><br>
+                        ₹500→₹10+ | ₹1000→₹25+ | ₹2000→₹60+ daily
+                    </small>
+                </div>
+                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-users me-1"></i>Manage Referrals
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Investments -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-chart-pie me-2"></i>Active Investments
+                </h5>
+                {% if investments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>Daily Return</th>
+                                <th>Date Invested</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for investment in investments %}
+                            <tr>
+                                <td>₹{{ "%.2f"|format(investment.amount) }}</td>
+                                <td class="text-success">₹{{ "%.2f"|format(investment.daily_return) }}</td>
+                                <td>{{ investment.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No active investments yet.</p>
+                    <a href="{{ url_for('invest') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Make Your First Investment
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                <h5>Make Investment</h5>
+                <p class="text-muted">Start earning daily returns</p>
+                <a href="{{ url_for('invest') }}" class="btn btn-primary">
+                    <i class="fas fa-chart-line me-2"></i>Invest Now
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-history fa-3x text-primary mb-3"></i>
+                <h5>Earnings History</h5>
+                <p class="text-muted">View your earning records</p>
+                <a href="{{ url_for('earnings') }}" class="btn btn-primary">
+                    <i class="fas fa-money-bill me-2"></i>View Earnings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyReferralCode() {
+    const code = "{{ user.referral_code }}";
+    navigator.clipboard.writeText(code).then(function() {
+        alert('Referral code copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

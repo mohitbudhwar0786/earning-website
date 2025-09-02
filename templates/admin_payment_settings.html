@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down">
+            <div>
+                <h1 class="text-white mb-2">
+                    <i class="fas fa-cog me-2"></i>Payment Settings
+                </h1>
+                <p class="text-white-50 mb-0">Configure UPI details and QR code for payments</p>
+            </div>
+            <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to Admin
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Settings Form -->
+            <div class="col-md-8">
+                <div class="card" data-aos="fade-right">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>Payment Configuration
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-user me-2"></i>Admin Display Name
+                                </label>
+                                <input type="text" class="form-control" name="admin_name" 
+                                       value="{{ config.admin_name }}" placeholder="Enter admin display name">
+                                <small class="form-text text-muted">This name will be shown to users in payment instructions</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-mobile-alt me-2"></i>UPI ID
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="upi_id" 
+                                           value="{{ config.upi_id }}" placeholder="Enter UPI ID (e.g., admin@paytm)">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="copyUPI()">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Users will use this UPI ID to make payments</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-qrcode me-2"></i>QR Code Image
+                                </label>
+                                <input type="file" class="form-control" name="qr_code" accept="image/*" onchange="previewQRCode(event)">
+                                <small class="form-text text-muted">Upload QR code image (PNG, JPG, JPEG, GIF - Max 16MB)</small>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Settings Preview -->
+            <div class="col-md-4">
+                <div class="card" data-aos="fade-left">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-eye me-2"></i>Current Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6 class="text-primary">Admin Name</h6>
+                            <p class="mb-0">{{ config.admin_name }}</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="text-primary">UPI ID</h6>
+                            <div class="d-flex align-items-center">
+                                <code class="me-2" id="currentUPI">{{ config.upi_id }}</code>
+                                <button class="btn btn-sm btn-outline-primary" onclick="copyText('{{ config.upi_id }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="text-primary">QR Code</h6>
+                            {% if config.qr_code_path %}
+                                <div class="text-center">
+                                    <img src="{{ url_for('static', filename=config.qr_code_path) }}" 
+                                         class="img-fluid border rounded" 
+                                         style="max-width: 200px; max-height: 200px;"
+                                         alt="Payment QR Code">
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4 border rounded bg-light">
+                                    <i class="fas fa-qrcode fa-3x text-muted mb-2"></i>
+                                    <p class="text-muted mb-0">No QR code uploaded</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>Last updated: 
+                                {{ config.updated_at.strftime('%Y-%m-%d %H:%M') if config.updated_at else 'Never' }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Code Preview -->
+                <div class="card mt-3" id="qrPreviewCard" style="display: none;">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-eye me-2"></i>QR Code Preview
+                        </h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <img id="qrPreview" class="img-fluid border rounded" style="max-width: 200px; max-height: 200px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Card -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card" data-aos="fade-up">
+                    <div class="card-body">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Setup Instructions
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-mobile-alt me-2 text-primary"></i>UPI Setup</h6>
+                                <ul class="text-muted">
+                                    <li>Enter your UPI ID (e.g., yourname@paytm, yourname@gpay)</li>
+                                    <li>Make sure the UPI ID is active and can receive payments</li>
+                                    <li>Users will copy this UPI ID to make payments</li>
+                                    <li>Test the UPI ID before saving</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-qrcode me-2 text-success"></i>QR Code Setup</h6>
+                                <ul class="text-muted">
+                                    <li>Generate QR code from your payment app (GPay, Paytm, PhonePe)</li>
+                                    <li>Save as image and upload here</li>
+                                    <li>Users can scan this QR code to pay directly</li>
+                                    <li>Ensure QR code is clear and scannable</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyUPI() {
+    const upiInput = document.querySelector('input[name="upi_id"]');
+    if (upiInput.value) {
+        copyText(upiInput.value);
+    }
+}
+
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        showToast('Copied to clipboard!', 'success');
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        showToast('Failed to copy', 'error');
+    });
+}
+
+function previewQRCode(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('qrPreview').src = e.target.result;
+            document.getElementById('qrPreviewCard').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('qrPreviewCard').style.display = 'none';
+    }
+}
+
+function showToast(message, type) {
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'times'} me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+    const toast = document.querySelector('.toast:last-child');
+    new bootstrap.Toast(toast).show();
+    
+    // Remove toast element after it's hidden
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+
+// Validate file upload
+document.querySelector('input[name="qr_code"]').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Check file size (16MB max)
+        if (file.size > 16 * 1024 * 1024) {
+            showToast('File size too large. Maximum 16MB allowed.', 'error');
+            e.target.value = '';
+            document.getElementById('qrPreviewCard').style.display = 'none';
+            return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file type. Please upload PNG, JPG, JPEG, or GIF.', 'error');
+            e.target.value = '';
+            document.getElementById('qrPreviewCard').style.display = 'none';
+            return;
+        }
+    }
+});
+</script>
+{% endblock %}

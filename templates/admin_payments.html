@@ -1,0 +1,678 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Management - Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down">
+            <div>
+                <h1 class="text-white mb-2">
+                    <i class="fas fa-money-check-alt me-2"></i>Payment Management
+                    {% if selected_user %}
+                    <span class="badge bg-primary ms-2">{{ selected_user.username }}</span>
+                    {% endif %}
+                </h1>
+                <p class="text-white-50 mb-0">
+                    {% if selected_user %}
+                    Viewing payments and withdrawals for {{ selected_user.username }}
+                    {% else %}
+                    Manage withdrawal requests and payment processing
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                {% if selected_user %}
+                <a href="{{ url_for('admin_payments') }}" class="btn btn-outline-info me-2">
+                    <i class="fas fa-list me-2"></i>All Users
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4" data-aos="fade-up">
+            {% set pending_count = 0 %}
+            {% set processing_count = 0 %}
+            {% set completed_count = 0 %}
+            {% set total_pending_amount = 0 %}
+            {% for withdrawal, user in withdrawals %}
+                {% if withdrawal and withdrawal.status == 'pending' %}
+                    {% set pending_count = pending_count + 1 %}
+                    {% set total_pending_amount = total_pending_amount + withdrawal.amount %}
+                {% elif withdrawal and withdrawal.status == 'processing' %}
+                    {% set processing_count = processing_count + 1 %}
+                {% elif withdrawal and withdrawal.status == 'completed' %}
+                    {% set completed_count = completed_count + 1 %}
+                {% endif %}
+            {% endfor %}
+            
+            <div class="col-md-3 mb-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h4>{{ pending_count }}</h4>
+                        <small>Pending Payments</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-spinner fa-2x mb-2"></i>
+                        <h4>{{ processing_count }}</h4>
+                        <small>Processing</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h4>{{ completed_count }}</h4>
+                        <small>Completed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-rupee-sign fa-2x mb-2"></i>
+                        <h4>₹{{ "%.2f"|format(total_pending_amount) }}</h4>
+                        <small>Pending Amount</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs mb-4" data-aos="fade-up" data-aos-delay="100">
+            <li class="nav-item">
+                <a class="nav-link active" id="withdrawals-tab" data-bs-toggle="tab" href="#withdrawals">
+                    <i class="fas fa-money-bill-transfer me-2"></i>Withdrawal Requests
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="investments-tab" data-bs-toggle="tab" href="#investments">
+                    <i class="fas fa-chart-line me-2"></i>Investment Confirmations
+                </a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Withdrawal Requests Tab -->
+            <div class="tab-pane fade show active" id="withdrawals">
+                <div class="card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Withdrawal Requests
+                        </h5>
+                    </div>
+            <div class="card-body">
+                {% if withdrawals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Bank Details</th>
+                                <th>Payment Info</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for withdrawal, user in withdrawals %}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{ withdrawal.id }}</span></td>
+                                <td>
+                                    <strong>{{ user.username }}</strong><br>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </td>
+                                <td>
+                                    <strong class="text-success">₹{{ "%.2f"|format(withdrawal.amount) }}</strong>
+                                </td>
+                                <td>
+                                    {% if withdrawal.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif withdrawal.status == 'processing' %}
+                                        <span class="badge bg-info">Processing</span>
+                                    {% elif withdrawal.status == 'completed' %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% elif withdrawal.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ withdrawal.requested_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </td>
+                                <td>
+                                    {% if withdrawal.upi_id %}
+                                        <div class="small">
+                                            <strong>UPI ID:</strong> {{ withdrawal.upi_id }}<br>
+                                            {% if withdrawal.upi_name %}
+                                            <strong>Name:</strong> {{ withdrawal.upi_name }}
+                                            {% endif %}
+                                        </div>
+                                    {% elif withdrawal.bank_details %}
+                                        <small class="text-muted">{{ withdrawal.bank_details[:50] }}{% if withdrawal.bank_details|length > 50 %}...{% endif %}</small>
+                                    {% else %}
+                                        <small class="text-muted">Not provided</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if withdrawal.payment_method %}
+                                        <small>
+                                            <strong>Method:</strong> {{ withdrawal.payment_method|upper }}<br>
+                                            {% if withdrawal.payment_reference %}
+                                                <strong>Ref:</strong> {{ withdrawal.payment_reference }}<br>
+                                            {% endif %}
+                                            {% if withdrawal.payment_time_hours is not none %}
+                                                <strong>Time:</strong> {{ withdrawal.payment_time_hours }}:{{ "%02d"|format(withdrawal.payment_time_minutes or 0) }}
+                                            {% endif %}
+                                        </small>
+                                    {% else %}
+                                        <small class="text-muted">No payment info</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="openPaymentModal({{ withdrawal.id }}, '{{ user.username }}', {{ withdrawal.amount }}, '{{ withdrawal.status }}')">
+                                        <i class="fas fa-edit"></i> Manage
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No withdrawal requests found.</p>
+                </div>
+                {% endif %}
+            </div>
+                </div>
+            </div>
+
+            <!-- Investment Confirmations Tab -->
+            <div class="tab-pane fade" id="investments">
+                <div class="card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Pending Investment Confirmations
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_investments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>Daily Return</th>
+                                        <th>Plan Type</th>
+                                        <th>Payment Method</th>
+                                        <th>Payment Reference</th>
+                                        <th>Payment Time</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pending_investment, user in pending_investments %}
+                                    <tr>
+                                        <td><span class="badge bg-info">#{{ pending_investment.id }}</span></td>
+                                        <td>
+                                            <strong>{{ user.username }}</strong><br>
+                                            <small class="text-muted">{{ user.email }}</small>
+                                        </td>
+                                        <td>
+                                            <strong class="text-primary">₹{{ "%.2f"|format(pending_investment.amount) }}</strong>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">₹{{ "%.2f"|format(pending_investment.daily_return) }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if pending_investment.amount == 500 %}
+                                                <span class="badge bg-primary">Starter</span>
+                                            {% elif pending_investment.amount == 1000 %}
+                                                <span class="badge bg-warning">Premium</span>
+                                            {% else %}
+                                                <span class="badge bg-success">VIP</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'primary' if pending_investment.payment_method == 'upi' else 'success' }}">
+                                                {{ pending_investment.payment_method|upper }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <code class="small">{{ pending_investment.payment_reference }}</code>
+                                        </td>
+                                        <td>
+                                            <small>{{ pending_investment.payment_time_hours }}:{{ "%02d"|format(pending_investment.payment_time_minutes or 0) }}</small>
+                                        </td>
+                                        <td>
+                                            <small>{{ pending_investment.confirmed_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-success" onclick="approveInvestment({{ pending_investment.id }}, '{{ user.username }}', {{ pending_investment.amount }})" title="Approve Investment">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-danger" onclick="rejectInvestment({{ pending_investment.id }}, '{{ user.username }}', {{ pending_investment.amount }})" title="Reject Investment">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No pending investment confirmations.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Update Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-money-check-alt me-2"></i>Payment Management
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- UPI/QR Payment Section -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>UPI Payment</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fab fa-google-pay fa-3x text-primary mb-2"></i>
+                                    <p class="mb-1"><strong>{{ config.admin_name }}</strong></p>
+                                    <div class="d-flex align-items-center justify-content-center mb-2">
+                                        <code class="me-2">{{ config.upi_id }}</code>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="copyText('{{ config.upi_id }}')"
+                                                title="Copy UPI ID">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-muted small">Pay using any UPI app</p>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm" onclick="selectPaymentMethod('upi')">
+                                    <i class="fas fa-check me-1"></i>Select UPI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="fas fa-qrcode me-2"></i>QR Code Payment</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    {% if config.qr_code_path %}
+                                        <img src="{{ url_for('static', filename=config.qr_code_path) }}" 
+                                             class="img-fluid border rounded mb-2" 
+                                             style="max-width: 120px; max-height: 120px;"
+                                             alt="Payment QR Code">
+                                    {% else %}
+                                        <div class="qr-placeholder bg-light border p-3 mb-2" style="height: 120px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-qrcode fa-4x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <p class="text-muted small">{{ config.admin_name }}</p>
+                                    <p class="text-muted small">Scan QR to pay</p>
+                                </div>
+                                <button class="btn btn-outline-success btn-sm" onclick="selectPaymentMethod('qr')">
+                                    <i class="fas fa-check me-1"></i>Select QR
+                                </button>
+                                {% if not config.qr_code_path %}
+                                <div class="mt-2">
+                                    <a href="{{ url_for('admin_payment_settings') }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-upload me-1"></i>Upload QR
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <form id="paymentUpdateForm">
+                    <input type="hidden" id="withdrawalId" name="withdrawal_id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">User</label>
+                            <input type="text" class="form-control" id="userName" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Amount</label>
+                            <input type="text" class="form-control" id="withdrawalAmount" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Status</label>
+                            <select class="form-select" id="paymentStatus" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-select" id="paymentMethod" name="payment_method">
+                                <option value="">Select Method</option>
+                                <option value="upi">UPI</option>
+                                <option value="qr">QR Code</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Payment Reference Number</label>
+                        <input type="text" class="form-control" id="paymentReference" name="payment_reference" placeholder="Enter transaction reference number">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Time - Hours (0-23)</label>
+                            <input type="number" class="form-control" id="paymentHours" name="payment_hours" min="0" max="23" placeholder="HH">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Time - Minutes (0-59)</label>
+                            <input type="number" class="form-control" id="paymentMinutes" name="payment_minutes" min="0" max="59" placeholder="MM">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="updatePaymentStatus()">
+                    <i class="fas fa-save me-2"></i>Update Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p class="mb-0">Updating payment status...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedPaymentMethod = '';
+
+function openPaymentModal(withdrawalId, userName, amount, currentStatus) {
+    document.getElementById('withdrawalId').value = withdrawalId;
+    document.getElementById('userName').value = userName;
+    document.getElementById('withdrawalAmount').value = '₹' + amount.toFixed(2);
+    document.getElementById('paymentStatus').value = currentStatus;
+    
+    // Reset form
+    document.getElementById('paymentMethod').value = '';
+    document.getElementById('paymentReference').value = '';
+    document.getElementById('paymentHours').value = '';
+    document.getElementById('paymentMinutes').value = '';
+    selectedPaymentMethod = '';
+    
+    // Reset payment method selection
+    document.querySelectorAll('.card').forEach(card => {
+        card.classList.remove('border-primary', 'border-success');
+    });
+    
+    // Set current time as default
+    const now = new Date();
+    document.getElementById('paymentHours').value = now.getHours();
+    document.getElementById('paymentMinutes').value = now.getMinutes();
+    
+    // Show modal
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+function selectPaymentMethod(method) {
+    selectedPaymentMethod = method;
+    document.getElementById('paymentMethod').value = method;
+    
+    // Reset all cards in modal
+    document.querySelectorAll('#paymentModal .card').forEach(card => {
+        card.classList.remove('border-primary', 'border-success');
+        card.style.borderWidth = '';
+    });
+    
+    // Highlight selected card
+    if (method === 'upi') {
+        const upiCard = document.querySelector('#paymentModal .card:has(.bg-primary)');
+        if (upiCard) {
+            upiCard.classList.add('border-primary');
+            upiCard.style.borderWidth = '3px';
+        }
+    } else if (method === 'qr') {
+        const qrCard = document.querySelector('#paymentModal .card:has(.bg-success)');
+        if (qrCard) {
+            qrCard.classList.add('border-success');
+            qrCard.style.borderWidth = '3px';
+        }
+    }
+}
+
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        showAlert('success', 'UPI ID copied to clipboard!');
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        showAlert('warning', 'Failed to copy. Please copy manually.');
+    });
+}
+
+function updatePaymentStatus() {
+    const form = document.getElementById('paymentUpdateForm');
+    const formData = new FormData(form);
+    
+    // Validate required fields
+    if (!formData.get('status')) {
+        alert('Please select a payment status');
+        return;
+    }
+    
+    // Convert FormData to JSON
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+        if (value !== '') {
+            if (key === 'payment_hours' || key === 'payment_minutes') {
+                data[key] = parseInt(value);
+            } else {
+                data[key] = value;
+            }
+        }
+    }
+    
+    // Show loading modal
+    new bootstrap.Modal(document.getElementById('loadingModal')).show();
+    
+    // Send update request
+    fetch('/admin/payments/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide loading modal
+        bootstrap.Modal.getInstance(document.getElementById('loadingModal')).hide();
+        
+        if (data.success) {
+            // Hide payment modal
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            
+            // Show success message
+            showAlert('success', data.message);
+            
+            // Reload page to show updated status
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showAlert('danger', data.error || 'Failed to update payment status');
+        }
+    })
+    .catch(error => {
+        // Hide loading modal
+        bootstrap.Modal.getInstance(document.getElementById('loadingModal')).hide();
+        showAlert('danger', 'An error occurred while updating payment status');
+        console.error('Error:', error);
+    });
+}
+
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Insert alert at the top of the page
+    const container = document.querySelector('.row');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            bootstrap.Alert.getInstance(alert).close();
+        }
+    }, 5000);
+}
+
+// Filter withdrawals by status
+function filterByStatus(status) {
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all') {
+            row.style.display = '';
+        } else {
+            const statusBadge = row.querySelector('.badge');
+            const rowStatus = statusBadge.textContent.toLowerCase();
+            
+            if (rowStatus === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Investment management functions
+function approveInvestment(investmentId, userName, amount) {
+    if (confirm(`Approve investment of ₹${amount} for ${userName}?`)) {
+        fetch(`/admin/investments/approve/${investmentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', data.error || 'Failed to approve investment');
+            }
+        })
+        .catch(error => {
+            showAlert('danger', 'An error occurred while approving investment');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function rejectInvestment(investmentId, userName, amount) {
+    if (confirm(`Reject investment of ₹${amount} for ${userName}?`)) {
+        fetch(`/admin/investments/reject/${investmentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', data.error || 'Failed to reject investment');
+            }
+        })
+        .catch(error => {
+            showAlert('danger', 'An error occurred while rejecting investment');
+            console.error('Error:', error);
+        });
+    }
+}
+
+// Add filter buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const cardHeader = document.querySelector('.card-header');
+    const filterButtons = `
+        <div class="btn-group btn-group-sm float-end" role="group">
+            <button type="button" class="btn btn-outline-secondary active" onclick="filterByStatus('all')">All</button>
+            <button type="button" class="btn btn-outline-warning" onclick="filterByStatus('pending')">Pending</button>
+            <button type="button" class="btn btn-outline-info" onclick="filterByStatus('processing')">Processing</button>
+            <button type="button" class="btn btn-outline-success" onclick="filterByStatus('completed')">Completed</button>
+        </div>
+    `;
+    cardHeader.insertAdjacentHTML('beforeend', filterButtons);
+});
+</script>
+{% endblock %}

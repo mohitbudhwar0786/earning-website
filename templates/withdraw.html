@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Withdraw Funds - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card" data-aos="fade-up">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">
+                    <i class="fas fa-hand-holding-usd me-2"></i>Withdraw Your Earnings
+                </h3>
+                
+                <!-- Withdrawal Form -->
+                <form method="POST" id="withdrawalForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary">
+                                        <i class="fas fa-wallet me-2"></i>Available Balance
+                                    </h6>
+                                    <h3 class="text-success">₹{{ "%.2f"|format(current_user.total_earnings) }}</h3>
+                                    <small class="text-muted">Ready for withdrawal</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h6 class="card-title text-warning">
+                                        <i class="fas fa-clock me-2"></i>Processing Time
+                                    </h6>
+                                    <h3 class="text-primary">24 Hours</h3>
+                                    <small class="text-muted">Guaranteed processing</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="amount" class="form-label fw-bold">
+                            <i class="fas fa-money-bill me-2"></i>Withdrawal Amount
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" class="form-control" id="amount" name="amount" 
+                                   min="100" max="{{ current_user.total_earnings }}" 
+                                   step="0.01" required placeholder="Enter amount">
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Minimum withdrawal: ₹100 | Available: ₹{{ "%.2f"|format(current_user.total_earnings) }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="upi_id" class="form-label fw-bold">
+                            <i class="fas fa-mobile-alt me-2"></i>UPI ID
+                        </label>
+                        <input type="text" class="form-control" id="upi_id" name="upi_id" 
+                               required placeholder="Enter your UPI ID (e.g., yourname@paytm, yourname@gpay)">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Enter your UPI ID for instant payment processing
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="upi_name" class="form-label fw-bold">
+                            <i class="fas fa-user me-2"></i>Name on UPI Account
+                        </label>
+                        <input type="text" class="form-control" id="upi_name" name="upi_name" 
+                               required placeholder="Enter the name registered with your UPI account">
+                        <div class="form-text">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Name must match your UPI account for successful payment
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Amount Buttons -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Quick Amount Selection:</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            {% set quick_amounts = [100, 500, 1000, current_user.total_earnings] %}
+                            {% for quick_amount in quick_amounts %}
+                            {% if quick_amount <= current_user.total_earnings %}
+                            <button type="button" class="btn btn-outline-primary" onclick="setAmount({{ quick_amount }})">
+                                ₹{{ "%.0f"|format(quick_amount) }}{% if quick_amount == current_user.total_earnings %} (All){% endif %}
+                            </button>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Withdrawal Terms -->
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Withdrawal Terms & Conditions</h6>
+                        <ul class="mb-0 small">
+                            <li>Minimum withdrawal amount: ₹100</li>
+                            <li>Processing time: 24 hours (instant UPI transfer)</li>
+                            <li>Withdrawals are processed directly to your UPI ID</li>
+                            <li>Ensure UPI ID and name are accurate to avoid delays</li>
+                            <li>No processing fees for UPI withdrawals</li>
+                            <li>Supported UPI apps: PhonePe, Google Pay, Paytm, BHIM</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Withdrawal Request
+                        </button>
+                        <a href="{{ url_for('wallet') }}" class="btn btn-outline-secondary btn-lg ms-3">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Wallet
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Recent Withdrawals -->
+        <div class="card mt-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-history me-2"></i>Recent Withdrawals
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- This would be populated with recent withdrawals -->
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No recent withdrawals</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setAmount(amount) {
+    document.getElementById('amount').value = amount;
+}
+
+// UPI ID validation function
+function validateUPI(upiId) {
+    const upiPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/;
+    return upiPattern.test(upiId);
+}
+
+// Form validation
+document.getElementById('withdrawalForm').addEventListener('submit', function(e) {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const upiId = document.getElementById('upi_id').value.trim();
+    const upiName = document.getElementById('upi_name').value.trim();
+    const maxAmount = {{ current_user.total_earnings }};
+    
+    if (amount < 100) {
+        e.preventDefault();
+        alert('Minimum withdrawal amount is ₹100');
+        return;
+    }
+    
+    if (amount > maxAmount) {
+        e.preventDefault();
+        alert('Insufficient balance. Maximum available: ₹' + maxAmount.toFixed(2));
+        return;
+    }
+    
+    if (!validateUPI(upiId)) {
+        e.preventDefault();
+        alert('Please enter a valid UPI ID (e.g., yourname@paytm)');
+        return;
+    }
+    
+    if (upiName.length < 2) {
+        e.preventDefault();
+        alert('Please enter the name registered with your UPI account');
+        return;
+    }
+    
+    if (!confirm(`Confirm withdrawal of ₹${amount.toFixed(2)} to UPI ID: ${upiId}? This action cannot be undone.`)) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

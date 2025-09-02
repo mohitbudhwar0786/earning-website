@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Chat Management - Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-right">
+            <div>
+                <h2 class="text-white mb-2">
+                    <i class="fas fa-comments me-2"></i>Chat Management
+                    {% if selected_user %}
+                    <span class="badge bg-primary ms-2">{{ selected_user.username }}</span>
+                    {% endif %}
+                </h2>
+                <p class="text-white-50 mb-0">
+                    {% if selected_user %}
+                    Viewing chat messages for {{ selected_user.username }}
+                    {% else %}
+                    Manage conversations with all platform members
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                {% if selected_user %}
+                <a href="{{ url_for('admin_chat') }}" class="btn btn-outline-info me-2">
+                    <i class="fas fa-list me-2"></i>All Users
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User List -->
+    <div class="col-md-4 mb-4">
+        <div class="card" data-aos="fade-right">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-users me-2"></i>Users with Messages
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if users %}
+                <div class="list-group list-group-flush" id="userList">
+                    {% for user in users %}
+                    <a href="#" class="list-group-item list-group-item-action user-item" 
+                       data-user-id="{{ user.id }}" onclick="loadUserChat({{ user.id }}, '{{ user.username }}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ user.username }}</h6>
+                                <small class="text-muted">
+                                    {% if user.last_message %}
+                                    {{ user.last_message.message[:40] }}{% if user.last_message.message|length > 40 %}...{% endif %}
+                                    {% else %}
+                                    No messages
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                {% if user.unread_count > 0 %}
+                                <span class="badge bg-danger rounded-pill">{{ user.unread_count }}</span>
+                                {% endif %}
+                                <small class="text-muted d-block">
+                                    {% if user.last_message %}
+                                    {{ user.last_message.created_at.strftime('%m/%d %H:%M') }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No messages yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Area -->
+    <div class="col-md-8 mb-4">
+        <div class="card" data-aos="fade-left">
+            <div class="card-header" id="chatHeader">
+                <h6 class="mb-0">
+                    <i class="fas fa-comment me-2"></i>Select a user to start chatting
+                </h6>
+            </div>
+            <div class="card-body" style="height: 500px; display: flex; flex-direction: column;">
+                <!-- Chat Messages -->
+                <div class="flex-grow-1 overflow-auto mb-3" id="adminChatMessages" style="max-height: 400px;">
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-comment-dots fa-3x mb-3"></i>
+                        <p>Select a user from the list to view their messages</p>
+                    </div>
+                </div>
+                
+                <!-- Reply Input -->
+                <div id="replySection" style="display: none;">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="adminReplyInput" 
+                               placeholder="Type your reply..." onkeypress="handleAdminKeyPress(event)">
+                        <button class="btn btn-primary" onclick="sendAdminReply()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat Statistics -->
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="100">
+            <h6><i class="fas fa-users me-2"></i>Active Conversations</h6>
+            <h3>{{ users|length }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="200">
+            <h6><i class="fas fa-envelope me-2"></i>Unread Messages</h6>
+            <h3>{{ users|sum(attribute='unread_count') }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="300">
+            <h6><i class="fas fa-clock me-2"></i>Response Time</h6>
+            <h3>&lt; 1h</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card" data-aos="fade-up" data-aos-delay="400">
+            <h6><i class="fas fa-check-circle me-2"></i>Resolved Today</h6>
+            <h3>0</h3>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentUserId = null;
+
+function loadUserChat(userId, username) {
+    currentUserId = userId;
+    
+    // Update header
+    document.getElementById('chatHeader').innerHTML = `
+        <h6 class="mb-0">
+            <i class="fas fa-comment me-2"></i>Chat with ${username}
+        </h6>
+    `;
+    
+    // Show reply section
+    document.getElementById('replySection').style.display = 'block';
+    
+    // Mark user as active
+    document.querySelectorAll('.user-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    document.querySelector(`[data-user-id="${userId}"]`).classList.add('active');
+    
+    // Load messages
+    fetch(`/admin/chat/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            const chatMessages = document.getElementById('adminChatMessages');
+            chatMessages.innerHTML = '';
+            
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    addAdminMessage(msg.message, msg.is_admin_reply, msg.created_at);
+                });
+            } else {
+                chatMessages.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-comment-dots fa-3x mb-3"></i>
+                        <p>No messages yet. Start the conversation!</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => console.error('Error loading chat:', error));
+}
+
+function addAdminMessage(message, isAdminReply, timestamp) {
+    const chatMessages = document.getElementById('adminChatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isAdminReply ? 'admin' : 'user'} mb-3`;
+    
+    if (isAdminReply) {
+        messageDiv.innerHTML = `
+            <div class="d-flex justify-content-end">
+                <div class="bg-primary text-white rounded-3 p-3 max-width-80">
+                    <small class="d-block mb-1 opacity-75">You (Admin)</small>
+                    ${message}
+                    <small class="d-block mt-1 opacity-75">${timestamp}</small>
+                </div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="d-flex justify-content-start">
+                <div class="bg-light rounded-3 p-3 max-width-80">
+                    <small class="d-block mb-1 text-muted">User</small>
+                    ${message}
+                    <small class="d-block mt-1 text-muted">${timestamp}</small>
+                </div>
+            </div>
+        `;
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendAdminReply() {
+    if (!currentUserId) return;
+    
+    const replyInput = document.getElementById('adminReplyInput');
+    const message = replyInput.value.trim();
+    
+    if (message === '') return;
+    
+    // Send reply
+    fetch('/admin/chat/reply', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_id: currentUserId,
+            message: message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            addAdminMessage(message, true, new Date().toLocaleString());
+            replyInput.value = '';
+        }
+    })
+    .catch(error => console.error('Error sending reply:', error));
+}
+
+function handleAdminKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendAdminReply();
+    }
+}
+
+// Auto-refresh user list every 30 seconds
+setInterval(() => {
+    location.reload();
+}, 30000);
+
+// Auto-select user if coming from user management
+document.addEventListener('DOMContentLoaded', function() {
+    {% if selected_user %}
+    // Auto-load the selected user's chat
+    loadUserChat({{ selected_user.id }}, '{{ selected_user.username }}');
+    {% endif %}
+});
+</script>
+
+<style>
+.max-width-80 {
+    max-width: 80%;
+}
+
+.user-item.active {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    border-left: 4px solid #6366f1;
+}
+
+.list-group-item:hover {
+    background-color: rgba(99, 102, 241, 0.05);
+}
+</style>
+{% endblock %}
