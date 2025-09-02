@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-white mb-4">
+            <i class="fas fa-cog me-2"></i>Admin Panel
+        </h2>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="fas fa-users me-2"></i>Total Users</h6>
+            <h3>{{ total_users }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="fas fa-wallet me-2"></i>Total Investments</h6>
+            <h3>₹{{ "%.2f"|format(total_investments) }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="fas fa-coins me-2"></i>Daily Payouts</h6>
+            <h3>₹{{ "%.2f"|format(daily_payouts) }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="fas fa-share-alt me-2"></i>Total Referrals</h6>
+            <h3>{{ total_referrals }}</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Users -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-user-plus me-2"></i>Recent Users
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Referral Code</th>
+                                <th>Total Investment</th>
+                                <th>Joined Date</th>
+                                <th>Referred By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td><code>{{ user.referral_code }}</code></td>
+                                <td>₹{{ "%.2f"|format(user.total_investment) }}</td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ user.referred_by or 'Direct' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Investors -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-trophy me-2"></i>Top Investors
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>Investment</th>
+                                <th>Daily Earning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in top_investors %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>₹{{ "%.2f"|format(user.total_investment) }}</td>
+                                <td class="text-success">₹{{ "%.2f"|format(user.daily_earning) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-users me-2"></i>Top Referrers
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>Referrals</th>
+                                <th>Bonus Earning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in top_referrers %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.referral_count }}</td>
+                                <td class="text-success">₹{{ "%.2f"|format(user.referral_earnings) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Actions -->
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-calculator fa-3x text-primary mb-3"></i>
+                <h5>Process Daily Earnings</h5>
+                <p class="text-muted">Manually trigger daily earnings calculation</p>
+                <button class="btn btn-primary" onclick="processDailyEarnings()">
+                    <i class="fas fa-play me-2"></i>Process Now
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-download fa-3x text-primary mb-3"></i>
+                <h5>Export Data</h5>
+                <p class="text-muted">Download user and earnings data</p>
+                <button class="btn btn-primary" onclick="exportData()">
+                    <i class="fas fa-download me-2"></i>Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
+                <h5>Generate Reports</h5>
+                <p class="text-muted">Create detailed analytics reports</p>
+                <button class="btn btn-primary" onclick="generateReports()">
+                    <i class="fas fa-file-alt me-2"></i>Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-comments fa-3x text-primary mb-3"></i>
+                <h5>Chat Management</h5>
+                <p class="text-muted">Manage user conversations and support</p>
+                <a href="{{ url_for('admin_chat') }}" class="btn btn-primary">
+                    <i class="fas fa-comments me-2"></i>Manage Chats
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-money-check-alt fa-3x text-success mb-3"></i>
+                <h5>Payment Management</h5>
+                <p class="text-muted">Process withdrawals and manage payments</p>
+                <a href="{{ url_for('admin_payments') }}" class="btn btn-success">
+                    <i class="fas fa-money-check-alt me-2"></i>Manage Payments
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-cogs fa-3x text-warning mb-3"></i>
+                <h5>Payment Settings</h5>
+                <p class="text-muted">Configure UPI ID and QR code</p>
+                <a href="{{ url_for('admin_payment_settings') }}" class="btn btn-warning">
+                    <i class="fas fa-cog me-2"></i>Payment Settings
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-users-cog fa-3x text-danger mb-3"></i>
+                <h5>User Management</h5>
+                <p class="text-muted">Manage users, view details, and delete accounts</p>
+                <a href="{{ url_for('admin_users') }}" class="btn btn-danger">
+                    <i class="fas fa-users-cog me-2"></i>Manage Users
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function processDailyEarnings() {
+    if (confirm('Are you sure you want to process daily earnings? This action cannot be undone.')) {
+        fetch('/admin/process-earnings', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(error => {
+                alert('Error processing earnings: ' + error);
+            });
+    }
+}
+
+function exportData() {
+    window.location.href = '/admin/export-data';
+}
+
+function generateReports() {
+    alert('Reports feature coming soon!');
+}
+</script>
+{% endblock %}

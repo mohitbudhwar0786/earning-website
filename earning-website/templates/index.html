@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Hero Section -->
+        <div class="card mb-5">
+            <div class="card-body text-center py-5">
+                <h1 class="display-4 fw-bold text-primary mb-4">
+                    <i class="fas fa-chart-line me-3"></i>EarnDaily
+                </h1>
+                <p class="lead mb-4">Join our exclusive membership platform and start earning daily returns on your investments!</p>
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-8">
+                        <h3 class="text-primary mb-3">Investment Plans</h3>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card investment-card h-100">
+                                    <div class="card-body text-center">
+                                        <h4 class="text-primary">₹500</h4>
+                                        <h5 class="text-success">₹30/day</h5>
+                                        <p class="text-muted">Starter Plan</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card investment-card h-100">
+                                    <div class="card-body text-center">
+                                        <h4 class="text-primary">₹1,000</h4>
+                                        <h5 class="text-success">₹70/day</h5>
+                                        <p class="text-muted">Premium Plan</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card investment-card h-100">
+                                    <div class="card-body text-center">
+                                        <h4 class="text-primary">₹2,000+</h4>
+                                        <h5 class="text-success">7.5% daily</h5>
+                                        <p class="text-muted">VIP Plan (Unlimited)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-user-plus me-2"></i>Join Now
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+                {% else %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="row mb-5">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-money-bill-wave fa-3x text-primary mb-3"></i>
+                        <h5>Daily Earnings</h5>
+                        <p class="text-muted">Earn guaranteed daily returns based on your investment amount. Higher investments = Higher daily returns!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        <h5>Referral System</h5>
+                        <p class="text-muted">Invite friends and earn 10% bonus from their daily earnings. Each referral increases your income!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                        <h5>Secure Platform</h5>
+                        <p class="text-muted">Your investments and personal data are protected with industry-standard security measures.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How it Works -->
+        <div class="card">
+            <div class="card-body">
+                <h3 class="text-center text-primary mb-4">How It Works</h3>
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <span class="fw-bold">1</span>
+                        </div>
+                        <h6 class="mt-2">Register Account</h6>
+                        <p class="text-muted small">Create your account and get your unique 7-digit referral code</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <span class="fw-bold">2</span>
+                        </div>
+                        <h6 class="mt-2">Choose Investment</h6>
+                        <p class="text-muted small">Start from ₹500 minimum or invest any custom amount - no upper limit!</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <span class="fw-bold">3</span>
+                        </div>
+                        <h6 class="mt-2">Earn Daily</h6>
+                        <p class="text-muted small">Receive guaranteed daily returns automatically</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <span class="fw-bold">4</span>
+                        </div>
+                        <h6 class="mt-2">Refer & Earn</h6>
+                        <p class="text-muted small">Share your referral code and earn bonus from referrals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

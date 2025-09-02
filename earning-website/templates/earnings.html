@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Earnings - EarnDaily{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-money-bill-wave me-2"></i>Earnings History
+                </h5>
+                
+                {% if earnings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for earning in earnings %}
+                            <tr>
+                                <td>{{ earning.date.strftime('%Y-%m-%d') }}</td>
+                                <td class="text-success">₹{{ "%.2f"|format(earning.amount) }}</td>
+                                <td>
+                                    {% if earning.earning_type == 'investment' %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-chart-line me-1"></i>Investment
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-users me-1"></i>Referral
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-success">Credited</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Earnings Summary -->
+                <div class="row mt-4">
+                    <div class="col-md-4 text-center">
+                        <div class="border rounded p-3">
+                            <h5 class="text-primary">Investment Earnings</h5>
+                            <h4 class="text-success">₹{{ "%.2f"|format(earnings|selectattr('earning_type', 'equalto', 'investment')|sum(attribute='amount')) }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="border rounded p-3">
+                            <h5 class="text-primary">Referral Earnings</h5>
+                            <h4 class="text-success">₹{{ "%.2f"|format(earnings|selectattr('earning_type', 'equalto', 'referral')|sum(attribute='amount')) }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="border rounded p-3">
+                            <h5 class="text-primary">Total Earnings</h5>
+                            <h4 class="text-success">₹{{ "%.2f"|format(earnings|sum(attribute='amount')) }}</h4>
+                        </div>
+                    </div>
+                </div>
+                
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted">No earnings yet</h4>
+                    <p class="text-muted">Make your first investment to start earning daily returns!</p>
+                    <a href="{{ url_for('invest') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Start Investing
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
