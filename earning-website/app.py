@@ -1318,19 +1318,23 @@ def process_daily_earnings():
         
         db.session.commit()
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        
-        # Set up scheduler for daily earnings
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(
-            func=process_daily_earnings,
-            trigger="cron",
-            hour=0,
-            minute=0,
-            id='daily_earnings'
-        )
-        scheduler.start()
+# Initialize database and scheduler
+with app.app_context():
+    db.create_all()
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Set up scheduler for daily earnings
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(
+        func=process_daily_earnings,
+        trigger="cron",
+        hour=0,
+        minute=0,
+        id='daily_earnings'
+    )
+    scheduler.start()
+
+if __name__ == '__main__':
+    # For Railway deployment, use PORT environment variable
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    app.run(debug=debug, host='0.0.0.0', port=port)
