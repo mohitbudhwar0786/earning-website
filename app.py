@@ -46,8 +46,7 @@ login_manager.login_view = 'login'
 # Database Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)  # Keep for backward compatibility
-    mobile_number = db.Column(db.String(15), unique=True, nullable=True)  # New mobile number field
+    username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(120), nullable=False)
     referral_code = db.Column(db.String(7), unique=True, nullable=False)
@@ -398,21 +397,10 @@ def invest():
         if amount < 500:
             flash('Minimum investment amount is ₹500.')
             current_total = current_user.total_investment
-            remaining = max(0, 2000 - current_total)
             return render_template('invest.html', 
                                  current_investment=current_total, 
-                                 remaining_capacity=remaining,
-                                 max_investment_limit=2000,
-                                 user=current_user)
-        
-        if current_user.total_investment + amount > 2000:
-            flash('Investment limit exceeded. Maximum total investment is ₹2,000 per user.')
-            current_total = current_user.total_investment
-            remaining = max(0, 2000 - current_total)
-            return render_template('invest.html', 
-                                 current_investment=current_total, 
-                                 remaining_capacity=remaining,
-                                 max_investment_limit=2000,
+                                 remaining_capacity=float('inf'),
+                                 max_investment_limit=None,
                                  user=current_user)
         
         daily_return = calculate_daily_return(amount)
@@ -434,12 +422,11 @@ def invest():
     
     # Calculate current investment status for GET request
     current_total = current_user.total_investment
-    remaining = max(0, 2000 - current_total)
     
     return render_template('invest.html', 
                          current_investment=current_total, 
-                         remaining_capacity=remaining,
-                         max_investment_limit=2000,
+                         remaining_capacity=float('inf'),
+                         max_investment_limit=None,
                          user=current_user)
 
 @app.route('/profile')
@@ -1352,6 +1339,6 @@ with app.app_context():
 
 if __name__ == '__main__':
     # For Railway deployment, use PORT environment variable
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') != 'production'
     app.run(debug=debug, host='0.0.0.0', port=port)
