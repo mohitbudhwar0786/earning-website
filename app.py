@@ -1339,6 +1339,6 @@ with app.app_context():
 
 if __name__ == '__main__':
     # For Railway deployment, use PORT environment variable
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_ENV') != 'production'
     app.run(debug=debug, host='0.0.0.0', port=port)
