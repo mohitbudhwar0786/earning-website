@@ -16,11 +16,15 @@ import os
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 
 # Database configuration for deployment
-database_url = os.environ.get('DATABASE_URL', 'sqlite:///earning_website.db')
-# Fix PostgreSQL URL format for newer SQLAlchemy
-if database_url.startswith('postgres://'):
-    database_url = database_url.replace('postgres://', 'postgresql://')
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Fix PostgreSQL URL format for newer SQLAlchemy
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://')
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Fallback to SQLite for testing
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///earning_website.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
