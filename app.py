@@ -397,10 +397,21 @@ def invest():
         if amount < 500:
             flash('Minimum investment amount is ₹500.')
             current_total = current_user.total_investment
+            remaining = max(0, 2000 - current_total)
             return render_template('invest.html', 
                                  current_investment=current_total, 
-                                 remaining_capacity=float('inf'),
-                                 max_investment_limit=None,
+                                 remaining_capacity=remaining,
+                                 max_investment_limit=2000,
+                                 user=current_user)
+        
+        if current_user.total_investment + amount > 2000:
+            flash('Investment limit exceeded. Maximum total investment is ₹2,000 per user.')
+            current_total = current_user.total_investment
+            remaining = max(0, 2000 - current_total)
+            return render_template('invest.html', 
+                                 current_investment=current_total, 
+                                 remaining_capacity=remaining,
+                                 max_investment_limit=2000,
                                  user=current_user)
         
         daily_return = calculate_daily_return(amount)
@@ -422,11 +433,12 @@ def invest():
     
     # Calculate current investment status for GET request
     current_total = current_user.total_investment
+    remaining = max(0, 2000 - current_total)
     
     return render_template('invest.html', 
                          current_investment=current_total, 
-                         remaining_capacity=float('inf'),
-                         max_investment_limit=None,
+                         remaining_capacity=remaining,
+                         max_investment_limit=2000,
                          user=current_user)
 
 @app.route('/profile')
