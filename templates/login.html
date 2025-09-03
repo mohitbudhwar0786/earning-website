@@ -12,8 +12,11 @@
                 </h3>
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label for="username" class="form-label">Mobile Number / Admin Login</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter mobile number or 'admin'" required>
+                        <div class="form-text text-muted">
+                            <small><strong>Admin:</strong> Enter "admin" • <strong>Users:</strong> Enter your 10-digit mobile number only</small>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>

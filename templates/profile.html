@@ -43,20 +43,9 @@
                     <div class="referral-code">
                         {{ user.referral_code }}
                     </div>
-                    <div class="btn-group d-flex gap-2 flex-wrap" role="group">
-                        <button class="btn btn-outline-primary btn-sm" onclick="copyReferralCode()">
-                            <i class="fas fa-copy me-1"></i>Copy Code
-                        </button>
-                        <button class="btn btn-success btn-sm" onclick="shareOnWhatsApp()">
-                            <i class="fab fa-whatsapp me-1"></i>WhatsApp
-                        </button>
-                        <button class="btn btn-info btn-sm" onclick="shareOnTelegram()">
-                            <i class="fab fa-telegram me-1"></i>Telegram
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="copyShareMessage()">
-                            <i class="fas fa-clipboard me-1"></i>Copy Message
-                        </button>
-                    </div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="copyReferralCode()">
+                        <i class="fas fa-copy me-1"></i>Copy Code
+                    </button>
                 </div>
                 <div class="alert alert-info py-2 px-3 mb-3">
                     <small class="mb-0">
@@ -163,130 +152,18 @@
 
 {% block scripts %}
 <script>
-const userReferralCode = "{{ user.referral_code }}";
-const baseUrl = "{{ request.host_url }}";
-const referralLink = `${baseUrl}register?ref=${userReferralCode}`;
-
 function copyReferralCode() {
-    navigator.clipboard.writeText(userReferralCode).then(function() {
-        showCopySuccess('Referral code copied to clipboard!');
+    const code = "{{ user.referral_code }}";
+    navigator.clipboard.writeText(code).then(function() {
+        alert('Referral code copied to clipboard!');
     });
 }
 
 function copyReferralLink() {
-    navigator.clipboard.writeText(referralLink).then(function() {
-        showCopySuccess('Referral link copied to clipboard!');
+    const link = document.getElementById('referralLink').value;
+    navigator.clipboard.writeText(link).then(function() {
+        alert('Referral link copied to clipboard!');
     });
-}
-
-function copyShareMessage() {
-    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!
-
-💰 Investment Plans:
-• ₹500 → ₹30 daily (6% return)
-• ₹1000 → ₹70 daily (7% return) 
-• ₹2000 → ₹150 daily (7.5% return)
-
-🎁 Use my referral code: ${userReferralCode}
-📱 Register here: ${referralLink}
-
-✨ Start earning today with EarnDaily!
-#EarnDaily #Investment #PassiveIncome`;
-    
-    navigator.clipboard.writeText(message).then(function() {
-        showCopySuccess('Complete share message copied to clipboard!');
-    });
-}
-
-function shareOnWhatsApp() {
-    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!
-
-💰 Investment Plans:
-• ₹500 → ₹30 daily
-• ₹1000 → ₹70 daily
-• ₹2000 → ₹150 daily
-
-🎁 Use my referral code: ${userReferralCode}
-📱 Register now: ${referralLink}
-
-#EarnDaily #Investment #PassiveIncome`;
-    
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-}
-
-function shareOnTelegram() {
-    const message = `🚀 Join EarnDaily and start earning guaranteed daily returns!
-
-💰 Investment Plans:
-• ₹500 → ₹30 daily
-• ₹1000 → ₹70 daily  
-• ₹2000 → ₹150 daily
-
-🎁 Use my referral code: ${userReferralCode}
-📱 Register now: ${referralLink}`;
-    
-    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
-    window.open(telegramUrl, '_blank');
-}
-
-function showCopySuccess(message) {
-    // Create a temporary success notification
-    const notification = document.createElement('div');
-    notification.className = 'alert alert-success position-fixed';
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    notification.innerHTML = `<i class="fas fa-check-circle me-2"></i>${message}`;
-    
-    document.body.appendChild(notification);
-    
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
 }
 </script>
-
-<style>
-.referral-code {
-    background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
-    border: 2px dashed #007bff;
-    padding: 20px;
-    border-radius: 15px;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #007bff;
-    margin-bottom: 15px;
-    letter-spacing: 3px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.referral-code::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-    transform: rotate(45deg);
-    animation: shine 3s infinite;
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-    100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-}
-
-.btn-group .btn {
-    border-radius: 8px !important;
-    margin: 2px;
-}
-
-.btn-group {
-    gap: 8px !important;
-}
-</style>
 {% endblock %}

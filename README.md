@@ -7,7 +7,7 @@ A comprehensive membership-based earning website where users can invest money an
 ### 💰 Investment Plans
 - **₹500 Plan**: Earn ₹30 daily (6% daily return)
 - **₹1000 Plan**: Earn ₹70 daily (7% daily return) 
-- **₹2000+ Plan**: Earn 7.5% daily (unlimited investment amounts)
+- **₹2000 Plan**: Earn ₹150 daily (7.5% daily return)
 
 ### 👥 Referral System
 - Each user gets a unique 7-digit referral code
@@ -68,24 +68,24 @@ After running the setup script, you can use these sample accounts:
 
 ### For Users:
 1. **Register**: Create account with optional referral code
-2. **Invest**: Start from ₹500 minimum or invest any custom amount (no upper limit)
+2. **Invest**: Choose from ₹500, ₹1000, or ₹2000 plans
 3. **Earn**: Receive daily returns automatically
 4. **Refer**: Share your 7-digit code to earn bonuses
 
 ### For Referrers:
-- Earn from daily earnings of each person you refer
+- Earn 10% of daily earnings from each person you refer
 - Higher referral earnings when your referrals choose higher investment plans
 - Track all referrals and their performance in your dashboard
 
 ### Investment Returns:
-- **₹500 investment** → ₹30/day (6% daily return)
-- **₹1000 investment** → ₹70/day (7% daily return)
-- **₹2000+ investment** → 7.5% daily return (unlimited amounts)
+- **₹500 investment** → ₹30/day
+- **₹1000 investment** → ₹70/day  
+- **₹2000 investment** → ₹150/day
 
 ### Referral Bonuses:
-- **₹500 referral** → ₹10/day bonus for referrer
-- **₹1000 referral** → ₹25/day bonus for referrer
-- **₹2000+ referral** → 3% of investment amount daily bonus
+- **₹500 referral** → ₹3/day bonus for referrer
+- **₹1000 referral** → ₹7/day bonus for referrer
+- **₹2000 referral** → ₹15/day bonus for referrer
 
 ## File Structure
 
@@ -162,11 +162,11 @@ Edit the `calculate_daily_return()` function in `app.py`:
 ```python
 def calculate_daily_return(amount):
     if amount >= 2000:
-        return amount * 0.075  # 7.5% for unlimited amounts
+        return 150  # Change this value
     elif amount >= 1000:
-        return 70   # Fixed return for 1000-1999
+        return 70   # Change this value
     elif amount >= 500:
-        return 30   # Fixed return for 500-999
+        return 30   # Change this value
     else:
         return 0
 ```
@@ -176,14 +176,8 @@ Edit the `calculate_referral_bonus()` function in `app.py`:
 
 ```python
 def calculate_referral_bonus(investment_amount):
-    if investment_amount >= 2000:
-        return investment_amount * 0.03  # 3% for unlimited amounts
-    elif investment_amount >= 1000:
-        return 25  # Fixed bonus for 1000-1999
-    elif investment_amount >= 500:
-        return 10  # Fixed bonus for 500-999
-    else:
-        return 0
+    daily_return = calculate_daily_return(investment_amount)
+    return daily_return * 0.1  # Change 0.1 to desired percentage
 ```
 
 ## Production Deployment

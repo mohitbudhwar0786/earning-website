@@ -16,6 +16,11 @@
                         <input type="text" class="form-control" id="username" name="username" required>
                     </div>
                     <div class="mb-3">
+                        <label for="mobile_number" class="form-label">Mobile Number</label>
+                        <input type="tel" class="form-control" id="mobile_number" name="mobile_number" pattern="[0-9]{10}" placeholder="Enter 10-digit mobile number" required>
+                        <div class="form-text">This will be used for login</div>
+                    </div>
+                    <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="email" name="email" required>
                     </div>
@@ -26,10 +31,7 @@
                     <div class="mb-3">
                         <label for="referral_code" class="form-label">Referral Code (Optional)</label>
                         <input type="text" class="form-control" id="referral_code" name="referral_code" maxlength="7" placeholder="Enter 7-digit referral code">
-                        <div class="form-text">
-                            <i class="fas fa-gift me-1"></i>Have a referral code? Enter it to give your referrer bonus earnings!
-                            <br><strong>Benefits:</strong> Your referrer earns daily bonuses when you invest!
-                        </div>
+                        <div class="form-text">Have a referral code? Enter it to give your referrer bonus earnings!</div>
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
@@ -44,26 +46,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-// Auto-fill referral code from URL parameter
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    
-    if (refCode) {
-        document.getElementById('referral_code').value = refCode;
-        // Highlight the referral code field
-        document.getElementById('referral_code').classList.add('border-success');
-        
-        // Show success message
-        const successDiv = document.createElement('div');
-        successDiv.className = 'alert alert-success mt-2';
-        successDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Referral code automatically filled!';
-        document.getElementById('referral_code').parentNode.appendChild(successDiv);
-    }
-});
-</script>
 {% endblock %}

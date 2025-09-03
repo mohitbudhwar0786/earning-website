@@ -101,7 +101,6 @@
                         <tbody>
                             {% for user in users %}
                             <tr data-user-type="{% if user.total_investments_count > 0 %}investor{% endif %}{% if user.referral_count > 0 %} referrer{% endif %}">
-                                <!-- Note: moment.utcnow() is not available in Jinja2, using a simpler approach for new users -->
                                 <td>
                                     <span class="badge bg-secondary">#{{ user.id }}</span>
                                     {% if user.username == 'admin' %}
@@ -138,10 +137,10 @@
                                     </small>
                                 </td>
                                 <td>
-                                    <strong class="text-primary">₹{{ "%.2f"|format(user.wallet.balance) }}</strong>
+                                    <strong class="text-primary">₹{{ "%.2f"|format(user.wallet.balance if user.wallet else 0) }}</strong>
                                 </td>
                                 <td>
-                                    <strong class="text-success">₹{{ "%.2f"|format(user.wallet.total_earned) }}</strong>
+                                    <strong class="text-success">₹{{ "%.2f"|format(user.wallet.total_earned if user.wallet else 0) }}</strong>
                                 </td>
                                 <td>
                                     <small>{{ user.created_at.strftime('%Y-%m-%d') }}</small>
@@ -305,22 +304,9 @@ function viewUserDetails(userId, username) {
     
     // For now, show basic info (could be expanded to fetch more details via API)
     setTimeout(() => {
-        // Find the user row by searching for the badge with the user ID
-        const badges = document.querySelectorAll('.badge.bg-secondary');
-        let userRow = null;
-        
-        for (let badge of badges) {
-            if (badge.textContent.includes(`#${userId}`)) {
-                userRow = badge.closest('tr');
-                break;
-            }
-        }
-        
+        const userRow = document.querySelector(`tr:has(.badge:contains("#${userId}"))`);
         if (userRow) {
             const cells = userRow.querySelectorAll('td');
-            const emailElement = cells[1].querySelector('small');
-            const email = emailElement ? emailElement.textContent : 'N/A';
-            
             const details = `
                 <div class="row">
                     <div class="col-md-6">
@@ -328,28 +314,21 @@ function viewUserDetails(userId, username) {
                         <table class="table table-sm">
                             <tr><td><strong>Username:</strong></td><td>${username}</td></tr>
                             <tr><td><strong>User ID:</strong></td><td>#${userId}</td></tr>
-                            <tr><td><strong>Email:</strong></td><td>${email}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${cells[1].querySelector('small').textContent}</td></tr>
                         </table>
                     </div>
                     <div class="col-md-6">
                         <h6><i class="fas fa-chart-bar me-2"></i>Statistics</h6>
                         <table class="table table-sm">
-                            <tr><td><strong>Investments:</strong></td><td>${cells[2] ? cells[2].textContent.trim() : 'N/A'}</td></tr>
-                            <tr><td><strong>Daily Earning:</strong></td><td>${cells[3] ? cells[3].textContent.trim() : 'N/A'}</td></tr>
-                            <tr><td><strong>Referrals:</strong></td><td>${cells[4] ? cells[4].textContent.trim() : 'N/A'}</td></tr>
-                            <tr><td><strong>Wallet Balance:</strong></td><td>${cells[5] ? cells[5].textContent.trim() : 'N/A'}</td></tr>
+                            <tr><td><strong>Investments:</strong></td><td>${cells[2].textContent.trim()}</td></tr>
+                            <tr><td><strong>Daily Earning:</strong></td><td>${cells[3].textContent.trim()}</td></tr>
+                            <tr><td><strong>Referrals:</strong></td><td>${cells[4].textContent.trim()}</td></tr>
+                            <tr><td><strong>Wallet Balance:</strong></td><td>${cells[5].textContent.trim()}</td></tr>
                         </table>
                     </div>
                 </div>
             `;
             document.getElementById('userDetailsContent').innerHTML = details;
-        } else {
-            document.getElementById('userDetailsContent').innerHTML = `
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Could not load user details. Please refresh the page and try again.
-                </div>
-            `;
         }
     }, 500);
 }

@@ -20,20 +20,9 @@ INVESTMENT_PLANS = {
     2000: {
         'daily_return': 150,
         'name': 'VIP Plan',
-        'description': 'Unlimited earning potential',
-        'features': ['7.5% Daily Return', 'Unlimited Investment Capacity', 'VIP Support']
+        'description': 'Maximum earning potential',
+        'features': ['7.5% Daily Return', 'Maximum Referral Bonus', 'VIP Support']
     }
-}
-
-# Investment Limits
-MINIMUM_INVESTMENT = 500  # Minimum investment amount
-MAXIMUM_INVESTMENT = None  # No maximum limit (None means unlimited)
-
-# Return Rates
-RETURN_RATES = {
-    'tier_1': {'min_amount': 500, 'max_amount': 999, 'rate': 0.06},    # 6% for ₹500-₹999
-    'tier_2': {'min_amount': 1000, 'max_amount': 1999, 'rate': 0.07}, # 7% for ₹1000-₹1999
-    'tier_3': {'min_amount': 2000, 'max_amount': None, 'rate': 0.075}  # 7.5% for ₹2000+
 }
 
 # Referral System Configuration

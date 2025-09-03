@@ -1,0 +1,56 @@
+# Git files
+.git
+.gitignore
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Database files
+*.db
+*.sqlite3
+instance/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Documentation
+README.md
+docs/
+
+# Development files
+change_admin_password.py
+check_schema.py
+create_fresh_db.py
+
+# Large files
+*.mp4
+*.avi
+*.mov
+
+# Test files
+tests/
+.pytest_cache/
+.coverage
+
+# Build files
+build/
+dist/
+*.egg-info/

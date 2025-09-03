@@ -36,20 +36,10 @@
 
         <!-- Statistics Cards -->
         <div class="row mb-4" data-aos="fade-up">
-            {% set pending_count = 0 %}
-            {% set processing_count = 0 %}
-            {% set completed_count = 0 %}
-            {% set total_pending_amount = 0 %}
-            {% for withdrawal, user in withdrawals %}
-                {% if withdrawal and withdrawal.status == 'pending' %}
-                    {% set pending_count = pending_count + 1 %}
-                    {% set total_pending_amount = total_pending_amount + withdrawal.amount %}
-                {% elif withdrawal and withdrawal.status == 'processing' %}
-                    {% set processing_count = processing_count + 1 %}
-                {% elif withdrawal and withdrawal.status == 'completed' %}
-                    {% set completed_count = completed_count + 1 %}
-                {% endif %}
-            {% endfor %}
+            {% set pending_count = withdrawals | selectattr('0.status', 'equalto', 'pending') | list | length %}
+            {% set processing_count = withdrawals | selectattr('0.status', 'equalto', 'processing') | list | length %}
+            {% set completed_count = withdrawals | selectattr('0.status', 'equalto', 'completed') | list | length %}
+            {% set total_pending_amount = withdrawals | selectattr('0.status', 'equalto', 'pending') | map(attribute='0.amount') | sum %}
             
             <div class="col-md-3 mb-3">
                 <div class="card bg-warning text-dark">
@@ -155,18 +145,7 @@
                                     <small>{{ withdrawal.requested_at.strftime('%Y-%m-%d %H:%M') }}</small>
                                 </td>
                                 <td>
-                                    {% if withdrawal.upi_id %}
-                                        <div class="small">
-                                            <strong>UPI ID:</strong> {{ withdrawal.upi_id }}<br>
-                                            {% if withdrawal.upi_name %}
-                                            <strong>Name:</strong> {{ withdrawal.upi_name }}
-                                            {% endif %}
-                                        </div>
-                                    {% elif withdrawal.bank_details %}
-                                        <small class="text-muted">{{ withdrawal.bank_details[:50] }}{% if withdrawal.bank_details|length > 50 %}...{% endif %}</small>
-                                    {% else %}
-                                        <small class="text-muted">Not provided</small>
-                                    {% endif %}
+                                    <small class="text-muted">{{ withdrawal.bank_details[:50] }}...</small>
                                 </td>
                                 <td>
                                     {% if withdrawal.payment_method %}

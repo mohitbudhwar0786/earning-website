@@ -39,6 +39,31 @@
                     </div>
                     
                     <div class="mb-4">
+                        <label for="full_name" class="form-label fw-bold">
+                            <i class="fas fa-user me-2"></i>Full Name
+                        </label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" 
+                               required placeholder="Enter your full name">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Enter your full name as per your UPI account
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="upi_id" class="form-label fw-bold">
+                            <i class="fas fa-mobile-alt me-2"></i>UPI ID
+                        </label>
+                        <input type="text" class="form-control" id="upi_id" name="upi_id" 
+                               required placeholder="Enter your UPI ID (e.g., example@paytm)" 
+                               pattern="[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+">
+                        <div class="form-text">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Your UPI ID is encrypted and secure. Supports all UPI apps (PayTM, PhonePe, GPay, etc.)
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
                         <label for="amount" class="form-label fw-bold">
                             <i class="fas fa-money-bill me-2"></i>Withdrawal Amount
                         </label>
@@ -51,30 +76,6 @@
                         <div class="form-text">
                             <i class="fas fa-info-circle me-1"></i>
                             Minimum withdrawal: ₹100 | Available: ₹{{ "%.2f"|format(current_user.total_earnings) }}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="upi_id" class="form-label fw-bold">
-                            <i class="fas fa-mobile-alt me-2"></i>UPI ID
-                        </label>
-                        <input type="text" class="form-control" id="upi_id" name="upi_id" 
-                               required placeholder="Enter your UPI ID (e.g., yourname@paytm, yourname@gpay)">
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Enter your UPI ID for instant payment processing
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="upi_name" class="form-label fw-bold">
-                            <i class="fas fa-user me-2"></i>Name on UPI Account
-                        </label>
-                        <input type="text" class="form-control" id="upi_name" name="upi_name" 
-                               required placeholder="Enter the name registered with your UPI account">
-                        <div class="form-text">
-                            <i class="fas fa-shield-alt me-1"></i>
-                            Name must match your UPI account for successful payment
                         </div>
                     </div>
                     
@@ -98,11 +99,11 @@
                         <h6><i class="fas fa-exclamation-triangle me-2"></i>Withdrawal Terms & Conditions</h6>
                         <ul class="mb-0 small">
                             <li>Minimum withdrawal amount: ₹100</li>
-                            <li>Processing time: 24 hours (instant UPI transfer)</li>
-                            <li>Withdrawals are processed directly to your UPI ID</li>
-                            <li>Ensure UPI ID and name are accurate to avoid delays</li>
-                            <li>No processing fees for UPI withdrawals</li>
-                            <li>Supported UPI apps: PhonePe, Google Pay, Paytm, BHIM</li>
+                            <li>Processing time: 24 hours (weekdays), 48 hours (weekends)</li>
+                            <li>Withdrawals are processed via UPI to the provided UPI ID</li>
+                            <li>Ensure your UPI ID is active and correct to avoid payment failures</li>
+                            <li>Supports all major UPI apps (PayTM, PhonePe, Google Pay, BHIM, etc.)</li>
+                            <li>No additional processing fees for UPI transactions</li>
                         </ul>
                     </div>
                     
@@ -153,19 +154,29 @@ function setAmount(amount) {
     document.getElementById('amount').value = amount;
 }
 
-// UPI ID validation function
-function validateUPI(upiId) {
-    const upiPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/;
-    return upiPattern.test(upiId);
-}
-
 // Form validation
 document.getElementById('withdrawalForm').addEventListener('submit', function(e) {
-    const amount = parseFloat(document.getElementById('amount').value);
+    const fullName = document.getElementById('full_name').value.trim();
     const upiId = document.getElementById('upi_id').value.trim();
-    const upiName = document.getElementById('upi_name').value.trim();
+    const amount = parseFloat(document.getElementById('amount').value);
     const maxAmount = {{ current_user.total_earnings }};
     
+    // Validate full name
+    if (fullName.length < 2) {
+        e.preventDefault();
+        alert('Please enter a valid full name');
+        return;
+    }
+    
+    // Validate UPI ID format
+    const upiPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/;
+    if (!upiPattern.test(upiId)) {
+        e.preventDefault();
+        alert('Please enter a valid UPI ID (e.g., yourname@paytm)');
+        return;
+    }
+    
+    // Validate amount
     if (amount < 100) {
         e.preventDefault();
         alert('Minimum withdrawal amount is ₹100');
@@ -178,18 +189,7 @@ document.getElementById('withdrawalForm').addEventListener('submit', function(e)
         return;
     }
     
-    if (!validateUPI(upiId)) {
-        e.preventDefault();
-        alert('Please enter a valid UPI ID (e.g., yourname@paytm)');
-        return;
-    }
-    
-    if (upiName.length < 2) {
-        e.preventDefault();
-        alert('Please enter the name registered with your UPI account');
-        return;
-    }
-    
+    // Final confirmation
     if (!confirm(`Confirm withdrawal of ₹${amount.toFixed(2)} to UPI ID: ${upiId}? This action cannot be undone.`)) {
         e.preventDefault();
     }
